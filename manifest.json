@@ -1,0 +1,27 @@
+{
+  "name": "Kings League Match Schedule Importer",
+  "id": "kings-league-schedule-importer",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": [
+    "figma"
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "https://api.kingsleague.kama.sport",
+      "https://*.kama.sport",
+      "https://*.kama.football",
+      "https://*.kingsleague.pro",
+      "https://*.kingsleague.com",
+      "https://fonts.googleapis.com",
+      "https://fonts.gstatic.com"
+    ],
+    "devAllowedDomains": [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002"
+    ],
+    "reasoning": "Este plugin requiere acceso a la API REST de KAMA para obtener el calendario y a los dominios de logos oficiales para renderizarlos en el canvas. Localhost se usa para el servidor de desarrollo UI."
+  }
+}
