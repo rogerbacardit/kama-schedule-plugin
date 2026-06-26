@@ -9,9 +9,10 @@ export interface FormattedDate {
  * Matches local timezone of the running client.
  *
  * @param isoString ISO date string from the KAMA API
+ * @param lang Preferred language ('es' | 'en' | 'ca')
  * @returns FormattedDate object containing weekday, time, and full date
  */
-export function formatMatchDate(isoString: string): FormattedDate {
+export function formatMatchDate(isoString: string, lang: 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar' = 'es'): FormattedDate {
   try {
     if (!isoString) {
       return { weekday: "TBD", time: "TBD", date: "TBD" };
@@ -24,30 +25,49 @@ export function formatMatchDate(isoString: string): FormattedDate {
 
     const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-    // 1. Weekday name (e.g., "Sábado")
-    const weekdayFormatter = new Intl.DateTimeFormat('es-ES', { weekday: 'long' });
+    const localeMap = {
+      es: 'es-ES',
+      en: 'en-US',
+      pt: 'pt-BR',
+      fr: 'fr-FR',
+      it: 'it-IT',
+      ar: 'ar-SA'
+    };
+    const locale = localeMap[lang] || 'es-ES';
+
+    // 1. Weekday name
+    const weekdayFormatter = new Intl.DateTimeFormat(locale, { weekday: 'long' });
     const weekday = capitalize(weekdayFormatter.format(d));
 
     // 2. Time string (e.g., "17:00")
-    const timeFormatter = new Intl.DateTimeFormat('es-ES', {
+    const timeFormatter = new Intl.DateTimeFormat(locale, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
     });
     const time = timeFormatter.format(d);
 
-    // 3. Full date string (e.g., "26 de Junio")
-    const dateFormatter = new Intl.DateTimeFormat('es-ES', {
+    // 3. Full date string
+    const dateFormatter = new Intl.DateTimeFormat(locale, {
       day: 'numeric',
       month: 'long'
     });
     const rawDate = dateFormatter.format(d);
     
-    // Capitalize month: "26 de junio" -> "26 de Junio"
-    const dateWords = rawDate.split(' ');
-    const formattedDate = dateWords
-      .map((word, idx) => (idx === 2 ? capitalize(word) : word))
-      .join(' ');
+    let formattedDate = rawDate;
+    if (lang === 'es' || lang === 'pt' || lang === 'fr' || lang === 'it') {
+      const dateWords = rawDate.split(' ');
+      formattedDate = dateWords
+        .map((word) => {
+          if (word.length >= 3 && word !== 'del' && !word.startsWith("d'")) {
+            return capitalize(word);
+          }
+          return word;
+        })
+        .join(' ');
+    } else if (lang === 'en') {
+      formattedDate = rawDate.split(' ').map(capitalize).join(' ');
+    }
 
     return { weekday, time, date: formattedDate };
   } catch (error) {

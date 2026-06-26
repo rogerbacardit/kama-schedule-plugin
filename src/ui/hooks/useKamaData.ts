@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
 
 export interface Competition {
@@ -71,6 +72,7 @@ export interface Credentials {
 
 export function useKamaData() {
   const [credentials, setCredentialsState] = useState<Credentials | null>(null);
+  const [language, setLanguageState] = useState<'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar'>('es');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
 
@@ -97,13 +99,16 @@ export function useKamaData() {
       if (event.data && event.data.source === 'figma-sandbox') {
         const payload = event.data.payload;
         if (payload && payload.type === 'credentials') {
-          const { username, password } = payload;
+          const { username, password, language } = payload;
           if (username && password) {
             setCredentialsState({ username, password });
             setIsAuthenticated(true);
           } else {
             setCredentialsState(null);
             setIsAuthenticated(false);
+          }
+          if (language) {
+            setLanguageState(language as 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar');
           }
           setIsAuthLoading(false);
         } else if (payload && payload.type === 'credentials-saved') {
@@ -124,6 +129,15 @@ export function useKamaData() {
     window.parent.postMessage({
       pluginMessage: { type: 'set-credentials', username, password }
     }, '*');
+  }, []);
+
+  const changeLanguage = useCallback((lang: 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar') => {
+    setLanguageState(lang);
+    if (typeof window !== 'undefined') {
+      window.parent.postMessage({
+        pluginMessage: { type: 'set-language', language: lang }
+      }, '*');
+    }
   }, []);
 
   const clearCredentials = useCallback(() => {
@@ -257,6 +271,8 @@ export function useKamaData() {
     isAuthLoading,
     saveCredentials,
     clearCredentials,
+    language,
+    changeLanguage,
     competitions,
     seasons,
     turns,
