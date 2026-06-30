@@ -1,532 +1,1087 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>Kings League Schedule Bridge</title>
+  <meta charset="UTF-8">
+  <title>KAMA Schedule</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Premium Reset and Base Styles */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    :root {
+      --bg: #0c0c0e;
+      --bg-card: rgba(22,22,26,0.7);
+      --bg-card-solid: #16161a;
+      --primary: #fbb800;
+      --primary-hover: #ffea79;
+      --text: #ffffff;
+      --muted: #8e8e9c;
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(251,184,0,0.4);
+      --red: #ef4444;
+      --green: #10b981;
     }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+      font-size: 13px;
       overflow: hidden;
-      background-color: #0c0c0e;
-      color: #ffffff;
-      font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
     }
-    
-    /* Layout Views */
-    .view {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-    
-    .hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      display: none !important;
-    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 
-    #app-iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: #0c0c0e;
-    }
-    
-    /* Loading View Styles */
-    .loader-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
+    /* Views */
+    .view { display: none; flex-direction: column; width: 100%; height: 100%; }
+    .view.active { display: flex; }
+
+    /* Loading */
+    #view-loading {
+      align-items: center; justify-content: center; gap: 14px;
     }
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(251, 184, 0, 0.1);
+      width: 36px; height: 36px;
+      border: 3px solid rgba(251,184,0,0.1);
+      border-top-color: var(--primary);
       border-radius: 50%;
-      border-top-color: #fbb800;
-      animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      animation: spin 0.8s cubic-bezier(0.4,0,0.2,1) infinite;
     }
     .loading-text {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      color: #8e8e9c;
-      text-transform: uppercase;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      color: var(--muted); text-transform: uppercase;
       animation: pulse 1.5s ease-in-out infinite;
-      text-align: center;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-    /* Offline Screen Card Styles */
+    /* Login */
+    #view-login { align-items: center; justify-content: center; padding: 20px; }
     .card {
-      width: 100%;
-      max-width: 370px;
-      background: rgba(22, 22, 26, 0.7);
+      width: 100%; max-width: 360px;
+      background: var(--bg-card);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
       border-radius: 24px;
-      padding: 28px 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-      position: relative;
-      overflow: hidden;
+      padding: 24px 22px;
+      position: relative; overflow: hidden;
     }
-    
     .card::before {
       content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background: linear-gradient(90deg, #fbb800, #ffea79, #fbb800);
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-hover), var(--primary));
     }
-    
     .brand-badge {
       display: inline-flex;
-      background: #fbb800;
-      color: #000000;
+      background: var(--primary); color: #000;
+      font-family: 'Outfit', sans-serif; font-weight: 800;
+      font-size: 9px; padding: 4px 10px; border-radius: 6px;
+      letter-spacing: 0.12em; margin-bottom: 14px; text-transform: uppercase;
+    }
+    .card h2 {
+      font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: -0.01em; margin-bottom: 6px;
+    }
+    .card .subtitle { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 22px; }
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.35); margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 11px 14px; color: #fff; font-size: 12px;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+    }
+    .field input:focus {
+      border-color: rgba(251,184,0,0.5);
+      box-shadow: 0 0 0 2px rgba(251,184,0,0.12);
+    }
+    .btn-primary {
+      width: 100%; background: linear-gradient(90deg, var(--primary), #f59e0b);
+      color: #000; border: none; border-radius: 13px;
+      padding: 12px 20px; font-size: 12px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 12px rgba(251,184,0,0.15);
+      transition: all 0.2s; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em;
       font-family: 'Outfit', sans-serif;
-      font-weight: 800;
-      font-size: 9px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      letter-spacing: 0.12em;
-      margin-bottom: 16px;
-      text-transform: uppercase;
     }
-    
-    .title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 18px;
-      font-weight: 800;
-      line-height: 1.3;
-      margin-bottom: 8px;
-      color: #ffffff;
-      text-transform: uppercase;
-      letter-spacing: -0.01em;
+    .btn-primary:hover { background: linear-gradient(90deg, var(--primary-hover), #f59e0b); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(251,184,0,0.25); }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .error-banner {
+      padding: 10px 14px; background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.2); border-radius: 12px;
+      color: var(--red); font-size: 11px; font-weight: 600;
+      text-align: center; margin-top: 10px; display: none;
     }
-    
-    .subtitle {
-      font-size: 12px;
-      color: #8e8e9c;
-      line-height: 1.5;
-      margin-bottom: 24px;
-    }
-    
-    /* Command box style */
-    .section-title {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: rgba(255, 255, 255, 0.4);
-      margin-bottom: 8px;
-      display: block;
-    }
-    
-    .code-box {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 20px;
-      cursor: pointer;
-      transition: border-color 0.2s, background-color 0.2s;
-    }
-    
-    .code-box:hover {
-      border-color: rgba(251, 184, 0, 0.3);
-      background: rgba(0, 0, 0, 0.6);
-    }
-    
-    .code-text {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 13px;
-      font-weight: bold;
-      color: #ffea79;
-    }
-    
-    .copy-icon {
-      color: #8e8e9c;
-      display: flex;
-      align-items: center;
-    }
-    .code-box:hover .copy-icon {
-      color: #fbb800;
-    }
-    
-    /* Input custom URL style */
-    .input-group {
-      margin-bottom: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .url-input {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 12px 14px;
-      color: #ffffff;
-      font-size: 12px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    
-    .url-input:focus {
-      border-color: #fbb800;
-      box-shadow: 0 0 0 2px rgba(251, 184, 0, 0.15);
-    }
-    
-    /* Buttons */
-    .btn {
-      width: 100%;
-      background: linear-gradient(90deg, #fbb800, #f59e0b);
-      color: #000000;
-      border: none;
-      border-radius: 14px;
-      padding: 12px 20px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(251, 184, 0, 0.15);
-      transition: all 0.2s ease;
-    }
-    
-    .btn:hover {
-      background: linear-gradient(90deg, #ffea79, #f59e0b);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(251, 184, 0, 0.25);
-    }
-    
-    .btn:active {
-      transform: translateY(1px);
-      background: #f59e0b;
-    }
-    
-    .toast {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #10b981;
-      color: #ffffff;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s, transform 0.3s;
-      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
-      z-index: 100;
-      white-space: nowrap;
-    }
-    .toast.show {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(-5px);
-    }
-    
-    .error-msg {
-      font-size: 11px;
-      color: #ef4444;
-      margin-top: -12px;
-      margin-bottom: 16px;
-      font-weight: 600;
-      display: none;
-      text-align: center;
-    }
+    .error-banner.show { display: block; }
 
-    /* Keyframes */
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    /* Main view */
+    #view-main { overflow-y: auto; padding: 14px; gap: 10px; }
+
+    /* Header */
+    .header-row {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(22,22,26,0.5); border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px; padding: 10px 12px; flex-shrink: 0;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; flex-shrink: 0; }
+    .header-title { font-size: 11px; font-weight: 900; letter-spacing: 0.02em; line-height: 1; }
+    .header-sub { font-size: 9px; color: rgba(255,255,255,0.28); letter-spacing: 0.06em; margin-top: 2px; }
+    .btn-icon {
+      padding: 7px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.55);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
     }
+    .btn-icon:hover { border-color: rgba(255,255,255,0.12); color: #fff; background: rgba(255,255,255,0.08); }
+    .btn-icon svg { width: 15px; height: 15px; }
+
+    /* Selectors */
+    .selectors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-shrink: 0; }
+    .sel-group { display: flex; flex-direction: column; gap: 4px; }
+    .sel-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.35); margin-left: 2px; }
+    select {
+      background: rgba(22,22,26,0.85); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 11px; padding: 8px 10px; font-size: 11px; color: #fff;
+      font-weight: 600; outline: none; appearance: none;
+      cursor: pointer; transition: border-color 0.2s; font-family: inherit; width: 100%;
+    }
+    select:focus { border-color: rgba(251,184,0,0.45); }
+    select:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* Turns row */
+    .turns-section { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .turns-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn-result {
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      padding: 9px 8px; border-radius: 11px; font-size: 10px; font-weight: 800;
+      cursor: pointer; border: none; transition: all 0.2s; height: 36px;
+      text-transform: uppercase; letter-spacing: 0.04em; font-family: 'Outfit', sans-serif;
+    }
+    .btn-result.primary { background: linear-gradient(90deg, var(--primary), #f59e0b); color: #000; box-shadow: 0 3px 10px rgba(251,184,0,0.2); }
+    .btn-result.primary:hover { background: linear-gradient(90deg, var(--primary-hover), #f59e0b); }
+    .btn-result.secondary { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); }
+    .btn-result.secondary:hover { background: rgba(255,255,255,0.1); }
+    .btn-result:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-result svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* Match list */
+    #matches-list { display: flex; flex-direction: column; gap: 7px; }
+    .match-card {
+      position: relative; overflow: hidden;
+      background: rgba(22,22,26,0.65); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; padding: 10px 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .match-card:hover { border-color: rgba(251,184,0,0.25); box-shadow: 0 0 14px rgba(251,184,0,0.05); }
+    .match-card .team-bar-left, .match-card .team-bar-right {
+      position: absolute; top: 0; height: 2px; width: 45%; opacity: 0.5;
+    }
+    .match-card .team-bar-left { left: 0; }
+    .match-card .team-bar-right { right: 0; }
+    .match-date { display: flex; flex-direction: column; font-size: 10px; color: rgba(255,255,255,0.38); min-width: 60px; line-height: 1.35; }
+    .match-date .wd { color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 9px; }
+    .match-date .tm { font-weight: 600; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .matchup { display: flex; align-items: center; justify-content: center; flex: 1; min-width: 0; gap: 8px; }
+    .team { display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; }
+    .team.home { justify-content: flex-end; }
+    .team.away { justify-content: flex-start; }
+    .team-name { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .team-logo {
+      width: 26px; height: 26px; border-radius: 50%; object-fit: contain;
+      background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0; padding: 1px;
+    }
+    .team-logo-fallback {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .score-box { display: flex; flex-direction: column; align-items: center; min-width: 54px; flex-shrink: 0; }
+    .score-nums { display: flex; align-items: center; gap: 4px; }
+    .score-num { font-size: 13px; font-weight: 900; tabular-nums: 1; }
+    .score-sep { font-size: 8px; color: rgba(255,255,255,0.18); padding: 0 2px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); border-radius: 4px; }
+    .penalties-label { font-size: 8px; color: rgba(251,184,0,0.8); font-weight: 700; margin-top: 2px; text-transform: uppercase; }
+    .vs-pill { font-size: 9px; font-weight: 900; color: rgba(255,255,255,0.22); padding: 3px 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; letter-spacing: 0.06em; }
+    .btn-import-card {
+      padding: 7px; border-radius: 11px; border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.55);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0;
+    }
+    .btn-import-card:hover { background: var(--primary); border-color: var(--primary); color: #000; }
+    .btn-import-card:active { transform: scale(0.92); }
+    .btn-import-card svg { width: 13px; height: 13px; }
+
+    /* Loading state in list */
+    .list-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 0; gap: 10px; color: rgba(255,255,255,0.5); }
+    .list-loading .spinner { width: 22px; height: 22px; border-width: 2px; }
+    .list-loading span { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .list-empty { text-align: center; padding: 32px 16px; color: rgba(255,255,255,0.25); font-size: 11px; font-weight: 600; background: rgba(22,22,26,0.3); border: 1px dashed rgba(255,255,255,0.06); border-radius: 14px; }
+    .list-error { padding: 12px 16px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 14px; color: var(--red); font-size: 11px; font-weight: 600; text-align: center; }
+
+    /* Preferences */
+    #view-preferences { overflow-y: auto; padding: 14px; gap: 14px; }
+    .pref-header { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+    .pref-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: var(--primary); }
+    .pref-sub { font-size: 10px; color: rgba(255,255,255,0.28); margin-top: 2px; }
+    .pref-section { display: flex; flex-direction: column; gap: 6px; }
+    .pref-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.35); }
+    .formats-box { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; background: rgba(22,22,26,0.45); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; }
+    .checkbox-row { display: flex; align-items: center; gap: 10px; font-size: 11px; color: rgba(255,255,255,0.75); cursor: pointer; }
+    .checkbox-row input[type=checkbox] { accent-color: var(--primary); width: 14px; height: 14px; cursor: pointer; }
+    .pref-spacer { flex: 1; }
+    .logout-box { background: rgba(22,22,26,0.45); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .logout-user-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.28); }
+    .logout-user-name { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); margin-top: 2px; }
+    .btn-logout {
+      width: 100%; padding: 9px; border: 1px solid rgba(239,68,68,0.22);
+      background: rgba(239,68,68,0.05); color: rgba(239,68,68,0.85);
+      border-radius: 12px; font-size: 11px; font-weight: 800;
+      cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.06em; font-family: 'Outfit', sans-serif;
+    }
+    .btn-logout:hover { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.1); color: var(--red); }
   </style>
 </head>
 <body>
 
-  <!-- Loading State View -->
-  <div id="loading-view" class="view">
-    <div class="loader-container">
-      <div class="spinner"></div>
-      <div class="loading-text">Buscando servidor del plugin...</div>
+<!-- Loading -->
+<div id="view-loading" class="view active">
+  <div class="spinner"></div>
+  <div class="loading-text">Validando credenciales...</div>
+</div>
+
+<!-- Login -->
+<div id="view-login" class="view">
+  <div class="card">
+    <div class="brand-badge">KAMA API</div>
+    <h2>Conectar con KAMA</h2>
+    <p class="subtitle">Ingresa tus credenciales para sincronizar calendarios y assets</p>
+
+    <div class="field">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="Ingresa tu usuario" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" />
+    </div>
+
+    <div class="error-banner" id="login-error"></div>
+
+    <button class="btn-primary" id="btn-login">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      GUARDAR Y CONECTAR
+    </button>
+  </div>
+</div>
+
+<!-- Main -->
+<div id="view-main" class="view">
+  <!-- Header -->
+  <div class="header-row">
+    <div class="header-left">
+      <div class="pulse-dot"></div>
+      <div>
+        <div class="header-title">SCHEDULE KAMA</div>
+        <div class="header-sub" id="header-user"></div>
+      </div>
+    </div>
+    <button class="btn-icon" id="btn-goto-prefs" title="Preferencias">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+    </button>
+  </div>
+
+  <!-- Competition + Season -->
+  <div class="selectors-grid">
+    <div class="sel-group">
+      <div class="sel-label" id="lbl-competition">Competición</div>
+      <select id="sel-competition">
+        <option value="" disabled selected>Seleccionar</option>
+      </select>
+    </div>
+    <div class="sel-group">
+      <div class="sel-label" id="lbl-season">Temporada</div>
+      <select id="sel-season" disabled>
+        <option value="" disabled selected>Seleccionar</option>
+      </select>
     </div>
   </div>
 
-  <!-- Offline / Configuration State View -->
-  <div id="offline-view" class="view hidden">
-    <div class="card">
-      <div class="brand-badge">KAMA API</div>
-      <h2 class="title">Servidor Desconectado</h2>
-      <p class="subtitle">El plugin necesita que el servidor de desarrollo esté activo para renderizar la interfaz.</p>
-      
-      <span class="section-title">1. Ejecuta este comando en tu terminal</span>
-      <div class="code-box" id="code-box" title="Clic para copiar comando">
-        <span class="code-text">npm run dev</span>
-        <div class="copy-icon">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-          </svg>
-        </div>
+  <!-- Turns + Actions (shown when turns loaded) -->
+  <div class="turns-section" id="turns-section" style="display:none">
+    <div class="turns-grid">
+      <div class="sel-group">
+        <div class="sel-label" id="lbl-round">Jornada</div>
+        <select id="sel-turn"></select>
       </div>
-      
-      <div class="input-group">
-        <span class="section-title">O ingresa una URL personalizada (ej. Vercel)</span>
-        <input type="text" id="url-input" class="url-input" placeholder="http://localhost:3000" />
+      <div class="sel-group">
+        <div class="sel-label" id="lbl-language">Idioma</div>
+        <select id="sel-import-lang">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="pt">Português</option>
+          <option value="fr">Français</option>
+          <option value="it">Italiano</option>
+          <option value="de">Deutsch</option>
+          <option value="ar">العربية</option>
+        </select>
       </div>
-
-      <div class="error-msg" id="error-msg">No se pudo establecer conexión.</div>
-      
-      <button class="btn" id="connect-btn">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-        </svg>
-        <span>CONECTAR Y REINTENTAR</span>
+    </div>
+    <div class="action-grid">
+      <button class="btn-result primary" id="btn-import-result">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span id="lbl-import-result">IMPORT DAY RESULT</span>
+      </button>
+      <button class="btn-result secondary" id="btn-import-schedule">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span id="lbl-import-schedule">IMPORT SCHEDULE</span>
       </button>
     </div>
-    
-    <div class="toast" id="toast">¡Comando copiado al portapapeles!</div>
   </div>
 
-  <!-- Main Active Iframe -->
-  <iframe id="app-iframe" class="hidden"></iframe>
+  <!-- Matches -->
+  <div id="matches-list"></div>
+</div>
 
-  <script>
-    const iframe = document.getElementById('app-iframe');
-    const loadingView = document.getElementById('loading-view');
-    const offlineView = document.getElementById('offline-view');
-    const urlInput = document.getElementById('url-input');
-    const errorMsg = document.getElementById('error-msg');
-    const toast = document.getElementById('toast');
-    const codeBox = document.getElementById('code-box');
+<!-- Preferences -->
+<div id="view-preferences" class="view">
+  <div class="pref-header">
+    <button class="btn-icon" id="btn-back-prefs">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+    <div>
+      <div class="pref-title" id="pref-title-label">Preferencias</div>
+      <div class="pref-sub">Configura diseño y localización</div>
+    </div>
+  </div>
 
-    // Default dev ports Next.js typically launches on
-    const DEV_PORTS = ['3000', '3001', '3002'];
+  <div class="pref-section">
+    <div class="pref-label" id="pref-lbl-language">Idioma de interfaz</div>
+    <select id="pref-language">
+      <option value="es">Español</option>
+      <option value="en">English</option>
+      <option value="pt">Português (BR)</option>
+      <option value="fr">Français</option>
+      <option value="it">Italiano</option>
+      <option value="de">Deutsch</option>
+      <option value="ar">العربية</option>
+    </select>
+  </div>
 
-    // Safe storage helper to avoid exceptions when Figma blocks localStorage access in sandboxed null-origin iframes
-    const safeStorage = {
-      getItem(key) {
-        try {
-          return localStorage.getItem(key);
-        } catch (e) {
-          console.warn("localStorage.getItem blocked:", e);
-          return null;
-        }
-      },
-      setItem(key, value) {
-        try {
-          localStorage.setItem(key, value);
-        } catch (e) {
-          console.warn("localStorage.setItem blocked:", e);
+  <div class="pref-section">
+    <div class="pref-label" id="pref-lbl-style">Estilo de diseño</div>
+    <select id="pref-style">
+      <option value="standard">Estándar</option>
+      <option value="kwcc">Kings World Cup Clubs</option>
+    </select>
+  </div>
+
+  <div id="pref-formats-wrapper" style="display:none">
+    <div class="pref-label" id="pref-lbl-formats" style="margin-bottom:8px">Formatos Canvas</div>
+    <div class="formats-box">
+      <label class="checkbox-row">
+        <input type="checkbox" id="fmt-stories"> Stories (1080 × 1920 px)
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="fmt-portraits"> Portraits (1350 × 1920 px)
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="fmt-thumbs"> Thumbs (1920 × 1080 px)
+      </label>
+    </div>
+  </div>
+
+  <div class="pref-spacer"></div>
+
+  <div class="logout-box">
+    <div>
+      <div class="logout-user-label" id="pref-connected-label">Conectado</div>
+      <div class="logout-user-name" id="pref-username-display"></div>
+    </div>
+    <button class="btn-logout" id="btn-logout" id="lbl-disconnect">DESCONECTAR</button>
+  </div>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+const S = {
+  credentials: null,
+  language: 'es',
+  importLanguage: 'es',
+  importStyle: 'standard',
+  selectedFormats: { stories: true, portraits: true, thumbs: true },
+  competitions: [],
+  seasons: [],
+  turns: [],
+  teamMap: {},
+  loading: false,
+  error: null,
+  selectedCompId: null,
+  selectedSeasonId: null,
+  selectedTurnId: null,
+  importLangInitialized: false,
+};
+
+// ─── Translations ─────────────────────────────────────────────────────────────
+const T = {
+  es: { competition:'Competición', season:'Temporada', language:'Idioma', round:'Jornada', connected:'CONECTADO', loading:'CARGANDO PARTIDOS...', noMatches:'No hay partidos programados', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'DESCONECTAR', updated:'Actualizado', penalties:'Pen.', importedMatch:'¡Partido importado!', importedSchedule:'¡Jornada importada al lienzo!', preferences:'Preferencias', style:'Estilo de Diseño', standard:'Estándar', kwcc:'Kings World Cup Clubs', formats:'Formatos Canvas', connecting:'CONECTANDO...', vs:'VS' },
+  en: { competition:'Competition', season:'Season', language:'Language', round:'Matchday', connected:'CONNECTED', loading:'LOADING MATCHES...', noMatches:'No matches scheduled for this matchday', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'DISCONNECT', updated:'Updated', penalties:'Pen.', importedMatch:'Match imported!', importedSchedule:'Schedule imported to canvas!', preferences:'Preferences', style:'Design Style', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Canvas Formats', connecting:'CONNECTING...', vs:'VS' },
+  pt: { competition:'Competição', season:'Temporada', language:'Idioma', round:'Rodada', connected:'CONECTADO', loading:'CARREGANDO PARTIDAS...', noMatches:'Não há partidas agendadas', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'DESCONECTAR', updated:'Atualizado', penalties:'Pên.', importedMatch:'Partida importada!', importedSchedule:'Rodada importada para o canvas!', preferences:'Preferências', style:'Estilo de Design', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Formatos de Tela', connecting:'CONECTANDO...', vs:'VS' },
+  fr: { competition:'Compétition', season:'Saison', language:'Langue', round:'Journée', connected:'CONNECTÉ', loading:'CHARGEMENT DES MATCHS...', noMatches:'Aucun match prévu pour cette journée', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'SE DÉCONNECTER', updated:'Mis à jour', penalties:'T.a.b.', importedMatch:'Match importé !', importedSchedule:'Journée importée sur le canvas !', preferences:'Préférences', style:'Style de Design', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Formats Canvas', connecting:'CONNEXION...', vs:'VS' },
+  it: { competition:'Competizione', season:'Stagione', language:'Lingua', round:'Giornata', connected:'CONNESSO', loading:'CARICAMENTO PARTITE...', noMatches:'Non ci sono partite in programma', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'DISCONNETTI', updated:'Aggiornato', penalties:'Rig.', importedMatch:'Partita importata!', importedSchedule:'Giornata importata nel canvas!', preferences:'Preferenze', style:'Stile di Design', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Formati Canvas', connecting:'CONNESSIONE...', vs:'VS' },
+  de: { competition:'Wettbewerb', season:'Saison', language:'Sprache', round:'Spieltag', connected:'VERBUNDEN', loading:'SPIELE WERDEN GELADEN...', noMatches:'Keine Spiele für diesen Spieltag geplant', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'ABMELDEN', updated:'Aktualisiert', penalties:'Elf.', importedMatch:'Spiel importiert!', importedSchedule:'Spieltag in Canvas importiert!', preferences:'Einstellungen', style:'Designstil', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Canvas-Formate', connecting:'VERBINDEN...', vs:'VS' },
+  ar: { competition:'المنافسة', season:'الموسم', language:'اللغة', round:'الجولة', connected:'متصل', loading:'جاري تحميل المباريات...', noMatches:'لا توجد مباريات مجدولة', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'تسجيل الخروج', updated:'تم التحديث', penalties:'ر.ت', importedMatch:'تم استيراد المباراة!', importedSchedule:'تم استيراد الجدول!', preferences:'التفضيلات', style:'نمط التصميم', standard:'قياسي', kwcc:'Kings World Cup Clubs', formats:'تنسيقات Canvas', connecting:'جاري الاتصال...', vs:'ضد' },
+};
+
+function t(key) {
+  const lang = S.language;
+  return (T[lang] && T[lang][key]) || T.es[key] || key;
+}
+
+function ti(key) {
+  const lang = S.importLanguage;
+  return (T[lang] && T[lang][key]) || T.es[key] || key;
+}
+
+// ─── View switching ───────────────────────────────────────────────────────────
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── Sandbox communication ────────────────────────────────────────────────────
+function post(msg) {
+  parent.postMessage({ pluginMessage: msg }, '*');
+}
+
+window.addEventListener('message', (event) => {
+  const msg = event.data && event.data.pluginMessage;
+  if (!msg) return;
+
+  if (msg.type === 'credentials') {
+    const { username, password, language, importStyle, selectedFormats } = msg;
+    if (username && password) {
+      S.credentials = { username, password };
+    } else {
+      S.credentials = null;
+    }
+    if (language) S.language = language;
+    if (importStyle) S.importStyle = importStyle;
+    if (selectedFormats) S.selectedFormats = selectedFormats;
+
+    if (!S.importLangInitialized) {
+      S.importLanguage = S.language;
+      S.importLangInitialized = true;
+    }
+
+    if (S.credentials) {
+      showView('view-main');
+      applyLabels();
+      loadCompetitions();
+    } else {
+      showView('view-login');
+    }
+  }
+
+  if (msg.type === 'credentials-saved') {
+    showView('view-main');
+    applyLabels();
+    loadCompetitions();
+  }
+
+  if (msg.type === 'credentials-cleared') {
+    S.credentials = null;
+    S.competitions = []; S.seasons = []; S.turns = []; S.teamMap = {};
+    S.selectedCompId = null; S.selectedSeasonId = null; S.selectedTurnId = null;
+    showView('view-login');
+  }
+});
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+const API = 'https://api.kingsleague.kama.sport/api/v1';
+
+async function kamaFetch(endpoint, locale) {
+  const { username, password } = S.credentials;
+  const auth = btoa(`${username}:${password}`);
+  const url = locale
+    ? `${API}/${endpoint}${endpoint.includes('?') ? '&' : '?'}locale=${locale}`
+    : `${API}/${endpoint}`;
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': `Basic ${auth}`,
+      'Accept': 'application/json',
+      ...(locale ? { 'Accept-Language': locale } : {})
+    }
+  });
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
+  return res.json();
+}
+
+async function loadCompetitions() {
+  if (!S.credentials) return;
+  setLoading(true);
+  try {
+    const data = await kamaFetch('competitions', S.importLanguage);
+    S.competitions = data.data || [];
+    renderCompetitions();
+    if (S.competitions.length > 0) {
+      S.selectedCompId = S.competitions[0].id;
+      document.getElementById('sel-competition').value = S.selectedCompId;
+      await loadSeasons(S.selectedCompId);
+    }
+  } catch(e) {
+    showMatchError(e.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function loadSeasons(compId) {
+  S.seasons = []; S.turns = []; S.selectedSeasonId = null; S.selectedTurnId = null;
+  renderSeasons();
+  renderTurns();
+  setLoading(true);
+  try {
+    const data = await kamaFetch(`competitions/${compId}/seasons`, S.importLanguage);
+    const comp = data.data || {};
+    S.seasons = comp.seasons || [];
+    renderSeasons();
+    if (S.seasons.length > 0) {
+      const current = S.seasons.find(s => s.isCurrent) || S.seasons[0];
+      S.selectedSeasonId = current.id;
+      document.getElementById('sel-season').value = S.selectedSeasonId;
+      await loadSeasonDetails(S.selectedSeasonId);
+    }
+  } catch(e) {
+    showMatchError(e.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function loadSeasonDetails(seasonId) {
+  S.turns = []; S.teamMap = {}; S.selectedTurnId = null;
+  renderTurns();
+  setLoading(true);
+  try {
+    const [scheduleData, teamsData] = await Promise.all([
+      kamaFetch(`seasons/${seasonId}`, S.importLanguage),
+      kamaFetch(`seasons/${seasonId}/teams`, S.importLanguage)
+    ]);
+
+    // Extract turns
+    const extracted = [];
+    const season = scheduleData.data || {};
+    if (season.phases) {
+      for (const phase of season.phases) {
+        if (phase.groups) {
+          for (const group of phase.groups) {
+            if (group.turns) extracted.push(...group.turns);
+          }
         }
       }
+    }
+    S.turns = extracted;
+
+    // Build team map
+    const map = {};
+    const teams = (teamsData.data && teamsData.data.teams) || [];
+    teams.forEach(team => {
+      map[team.id] = {
+        id: team.id, name: team.name, shortName: team.shortName,
+        logoUrl: team.logo ? team.logo.url : '',
+        colorHex: team.firstColorHEX || '#7F8C8D'
+      };
+    });
+    S.teamMap = map;
+
+    renderTurns();
+    if (S.turns.length > 0) {
+      S.selectedTurnId = S.turns[0].id;
+      document.getElementById('sel-turn').value = S.selectedTurnId;
+    }
+    renderMatches();
+  } catch(e) {
+    showMatchError(e.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ─── Render helpers ───────────────────────────────────────────────────────────
+function setLoading(val) {
+  S.loading = val;
+  if (val) {
+    document.getElementById('matches-list').innerHTML =
+      `<div class="list-loading"><div class="spinner"></div><span>${t('loading')}</span></div>`;
+  }
+}
+
+function showMatchError(msg) {
+  document.getElementById('matches-list').innerHTML =
+    `<div class="list-error">⚠️ ${msg}</div>`;
+}
+
+function renderCompetitions() {
+  const sel = document.getElementById('sel-competition');
+  sel.innerHTML = '';
+  S.competitions.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.name;
+    sel.appendChild(o);
+  });
+  if (S.selectedCompId) sel.value = S.selectedCompId;
+}
+
+function renderSeasons() {
+  const sel = document.getElementById('sel-season');
+  sel.innerHTML = '';
+  sel.disabled = S.seasons.length === 0;
+  S.seasons.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.id;
+    o.textContent = s.isCurrent ? `${s.name} • Actual` : s.name;
+    sel.appendChild(o);
+  });
+  if (S.selectedSeasonId) sel.value = S.selectedSeasonId;
+}
+
+function renderTurns() {
+  const section = document.getElementById('turns-section');
+  const sel = document.getElementById('sel-turn');
+  sel.innerHTML = '';
+  if (S.turns.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'flex';
+  S.turns.forEach(turn => {
+    const o = document.createElement('option');
+    o.value = turn.id;
+    o.textContent = translateTurnName(turn.name, S.language);
+    sel.appendChild(o);
+  });
+  if (S.selectedTurnId) sel.value = S.selectedTurnId;
+
+  // Sync import lang selector
+  document.getElementById('sel-import-lang').value = S.importLanguage;
+
+  // Sync action buttons
+  updateActionButtons();
+}
+
+function updateActionButtons() {
+  const activeTurn = S.turns.find(t => t.id === S.selectedTurnId);
+  const hasMatches = activeTurn && activeTurn.matches && activeTurn.matches.length > 0;
+  document.getElementById('btn-import-result').disabled = S.loading || !hasMatches;
+  document.getElementById('btn-import-schedule').disabled = S.loading || !hasMatches;
+}
+
+function renderMatches() {
+  if (S.loading) return;
+  const list = document.getElementById('matches-list');
+  const activeTurn = S.turns.find(t => t.id === S.selectedTurnId);
+  const matches = activeTurn ? activeTurn.matches : [];
+
+  if (matches.length === 0) {
+    list.innerHTML = `<div class="list-empty">${t('noMatches')}</div>`;
+    updateActionButtons();
+    return;
+  }
+
+  list.innerHTML = '';
+  matches.forEach(m => {
+    const resolved = resolveMatch(m);
+    list.appendChild(createMatchCardEl(resolved, activeTurn));
+  });
+  updateActionButtons();
+}
+
+function resolveMatch(m) {
+  const def = (id) => ({ id, name: `Equipo ${id}`, shortName: `EQ${id}`, logoUrl: '', colorHex: '#7F8C8D' });
+  return {
+    id: m.id, date: m.date, scores: m.scores,
+    homeTeamId: m.participants.homeTeamId, awayTeamId: m.participants.awayTeamId,
+    homeTeam: S.teamMap[m.participants.homeTeamId] || def(m.participants.homeTeamId),
+    awayTeam: S.teamMap[m.participants.awayTeamId] || def(m.participants.awayTeamId),
+  };
+}
+
+function createMatchCardEl(resolved, turn) {
+  const { weekday, time, date } = formatMatchDate(resolved.date, S.importLanguage);
+  const hasScore = resolved.scores.homeScore !== null && resolved.scores.awayScore !== null;
+
+  const card = document.createElement('div');
+  card.className = 'match-card';
+
+  // Team color bars
+  const barL = document.createElement('div');
+  barL.className = 'team-bar-left';
+  barL.style.background = `linear-gradient(to right, ${resolved.homeTeam.colorHex}, transparent)`;
+  const barR = document.createElement('div');
+  barR.className = 'team-bar-right';
+  barR.style.background = `linear-gradient(to left, ${resolved.awayTeam.colorHex}, transparent)`;
+  card.appendChild(barL);
+  card.appendChild(barR);
+
+  // Date col
+  const dateCol = document.createElement('div');
+  dateCol.className = 'match-date';
+  dateCol.innerHTML = `<span class="wd">${(weekday || '').slice(0,3)}</span><span>${shortDate(date, S.importLanguage)}</span><span class="tm">${time}</span>`;
+  card.appendChild(dateCol);
+
+  // Matchup
+  const matchup = document.createElement('div');
+  matchup.className = 'matchup';
+
+  // Home
+  const home = document.createElement('div');
+  home.className = 'team home';
+  home.innerHTML = `<span class="team-name">${resolved.homeTeam.shortName || resolved.homeTeam.name}</span>`;
+  home.appendChild(logoEl(resolved.homeTeam));
+  matchup.appendChild(home);
+
+  // Score/VS
+  const scoreBox = document.createElement('div');
+  scoreBox.className = 'score-box';
+  if (hasScore) {
+    const hasP = resolved.scores.homeScoreP !== null || resolved.scores.awayScoreP !== null;
+    scoreBox.innerHTML = `
+      <div class="score-nums">
+        <span class="score-num">${resolved.scores.homeScore}</span>
+        <span class="score-sep">-</span>
+        <span class="score-num">${resolved.scores.awayScore}</span>
+      </div>
+      ${hasP ? `<span class="penalties-label">P (${resolved.scores.homeScoreP||0}-${resolved.scores.awayScoreP||0})</span>` : ''}
+    `;
+  } else {
+    scoreBox.innerHTML = `<div class="vs-pill">${ti('vs')}</div>`;
+  }
+  matchup.appendChild(scoreBox);
+
+  // Away
+  const away = document.createElement('div');
+  away.className = 'team away';
+  away.appendChild(logoEl(resolved.awayTeam));
+  away.innerHTML += `<span class="team-name">${resolved.awayTeam.shortName || resolved.awayTeam.name}</span>`;
+  matchup.appendChild(away);
+
+  card.appendChild(matchup);
+
+  // Import button
+  const btn = document.createElement('button');
+  btn.className = 'btn-import-card';
+  btn.title = 'Importar a Canvas';
+  btn.innerHTML = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>`;
+  btn.addEventListener('click', () => importSingleMatch(resolved, turn));
+  card.appendChild(btn);
+
+  return card;
+}
+
+function logoEl(team) {
+  if (team.logoUrl) {
+    const img = document.createElement('img');
+    img.className = 'team-logo';
+    img.src = team.logoUrl;
+    img.alt = team.name;
+    img.onerror = () => {
+      const fb = fallbackLogoEl(team);
+      img.parentNode && img.parentNode.replaceChild(fb, img);
     };
+    return img;
+  }
+  return fallbackLogoEl(team);
+}
 
-    // Helper: Robust connection check using GET/HEAD request with cache-busting
-    async function checkServer(url, timeout = 1200) {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), timeout);
-      try {
-        const testUrl = new URL(url);
-        testUrl.searchParams.set('_cb', Date.now().toString()); // Cache buster
-        await fetch(testUrl.toString(), {
-          method: 'GET',
-          mode: 'no-cors',
-          cache: 'no-store',
-          signal: controller.signal
-        });
-        clearTimeout(id);
-        return true;
-      } catch (err) {
-        clearTimeout(id);
-        return false;
-      }
+function fallbackLogoEl(team) {
+  const div = document.createElement('div');
+  div.className = 'team-logo-fallback';
+  div.style.backgroundColor = team.colorHex;
+  div.textContent = (team.name || '?').charAt(0).toUpperCase();
+  return div;
+}
+
+function shortDate(dateStr, lang) {
+  if (!dateStr || dateStr === 'TBD') return dateStr;
+  const parts = dateStr.split(' ');
+  if (lang === 'en') {
+    return parts.slice(0, 2).join(' ');
+  }
+  if (parts.length >= 3) {
+    return `${parts[0]} ${(parts[2] || '').slice(0, 3)}`;
+  }
+  return dateStr.slice(0, 8);
+}
+
+// ─── Date formatting ──────────────────────────────────────────────────────────
+function formatMatchDate(iso, lang = 'es') {
+  try {
+    if (!iso) return { weekday: 'TBD', time: 'TBD', date: 'TBD' };
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return { weekday: 'TBD', time: 'TBD', date: 'TBD' };
+    const localeMap = { es:'es-ES', en:'en-US', pt:'pt-BR', fr:'fr-FR', it:'it-IT', ar:'ar-SA', de:'de-DE' };
+    const locale = localeMap[lang] || 'es-ES';
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    const weekday = cap(new Intl.DateTimeFormat(locale, { weekday:'long' }).format(d));
+    const time = new Intl.DateTimeFormat(locale, { hour:'2-digit', minute:'2-digit', hour12:false }).format(d);
+    let date = new Intl.DateTimeFormat(locale, { day:'numeric', month:'long' }).format(d);
+    if (['es','pt','fr','it','de'].includes(lang)) {
+      date = date.split(' ').map(w => (w.length >= 3 && w !== 'del' && !w.startsWith("d'")) ? cap(w) : w).join(' ');
+    } else if (lang === 'en') {
+      date = date.split(' ').map(cap).join(' ');
     }
+    return { weekday, time, date };
+  } catch { return { weekday:'TBD', time:'TBD', date:'TBD' }; }
+}
 
-    // Code copy event
-    codeBox.addEventListener('click', () => {
-      const textarea = document.createElement('textarea');
-      textarea.value = 'npm run dev';
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand('copy');
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2000);
-      } catch (e) {
-        console.error("No se pudo copiar el comando", e);
-      }
-      document.body.removeChild(textarea);
+// ─── Turn name translator ─────────────────────────────────────────────────────
+function translateTurnName(name, lang) {
+  if (!name) return '';
+  const lower = name.toLowerCase();
+  const num = (name.match(/\d+/) || [''])[0];
+  const rounds = { es:'Jornada', en:'Matchday', pt:'Rodada', fr:'Journée', it:'Giornata', ar:'الجولة', de:'Spieltag' };
+  const base = rounds[lang] || 'Jornada';
+  if ((lower.startsWith('jornada') || lower.startsWith('matchday') || lower.startsWith('rodada') || lower.startsWith('spieltag')) && num) return `${base} ${num}`;
+  if (lower.includes('cuartos') || lower.includes('quarter')) {
+    const qMap = { en:'Quarterfinals', pt:'Quartas de final', fr:'Quarts de finale', it:'Quarti di finale', ar:'ربع النهائي', de:'Viertelfinale' };
+    return qMap[lang] || 'Cuartos de Final';
+  }
+  if (lower.includes('semifinal') || lower.includes('semi')) {
+    const sMap = { en:'Semifinals', pt:'Semifinais', fr:'Demi-finales', it:'Semifinali', ar:'نصف النهائي', de:'Halbfinale' };
+    return sMap[lang] || 'Semifinal';
+  }
+  if (lower.includes('final')) {
+    const fMap = { en:'Final', pt:'Final', fr:'Finale', it:'Finale', ar:'النهائي', de:'Finale' };
+    return fMap[lang] || 'Final';
+  }
+  return name;
+}
+
+// ─── Date range for round header ─────────────────────────────────────────────
+function roundDateRange(matches, lang) {
+  if (!matches || !matches.length) return '';
+  const dates = matches.map(m => new Date(m.date)).filter(d => !isNaN(d.getTime())).sort((a,b) => a-b);
+  if (!dates.length) return '';
+  const localeMap = { es:'es-ES', en:'en-US', pt:'pt-BR', fr:'fr-FR', it:'it-IT', ar:'ar-SA', de:'de-DE' };
+  const locale = localeMap[lang] || 'es-ES';
+  const d = dates[0];
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const wd = cap(new Intl.DateTimeFormat(locale, { weekday:'long' }).format(d));
+  const dt = cap(new Intl.DateTimeFormat(locale, { day:'numeric', month:'long' }).format(d));
+  return `${wd}, ${dt}`.toUpperCase();
+}
+
+// ─── Import handlers ──────────────────────────────────────────────────────────
+function getUpdateTime(lang) {
+  const localeMap = { es:'es-ES', en:'en-US', pt:'pt-BR', fr:'fr-FR', it:'it-IT', ar:'ar-SA', de:'de-DE' };
+  return new Date().toLocaleTimeString(localeMap[lang] || 'es-ES', { hour:'2-digit', minute:'2-digit' });
+}
+
+function buildPayloadMatch(m, turn) {
+  const resolved = resolveMatch(m);
+  const { weekday, time, date } = formatMatchDate(resolved.date, S.importLanguage);
+  const hP = resolved.scores.homeScoreP, aP = resolved.scores.awayScoreP;
+  const penaltiesText = (hP !== null || aP !== null)
+    ? `${ti('penalties')} (${hP||0} - ${aP||0})` : undefined;
+  return { match: resolved, weekday, time, date, penaltiesText };
+}
+
+function getCompetitionName() {
+  const c = S.competitions.find(c => c.id === S.selectedCompId);
+  return c ? c.name : 'KINGS LEAGUE';
+}
+
+function importSingleMatch(resolved, turn) {
+  const { weekday, time, date } = formatMatchDate(resolved.date, S.importLanguage);
+  const hP = resolved.scores.homeScoreP, aP = resolved.scores.awayScoreP;
+  const penaltiesText = (hP !== null || aP !== null) ? `${ti('penalties')} (${hP||0} - ${aP||0})` : undefined;
+  const isPlayed = resolved.scores.homeScore !== null && resolved.scores.awayScore !== null;
+  const updateTime = getUpdateTime(S.importLanguage);
+  const compName = getCompetitionName();
+  const turnName = translateTurnName(turn ? turn.name : 'Jornada', S.importLanguage);
+  const notif = `${resolved.homeTeam.shortName || resolved.homeTeam.name} vs ${resolved.awayTeam.shortName || resolved.awayTeam.name} — ${ti('importedMatch')}`;
+
+  if (S.importStyle === 'kwcc') {
+    const activeTurn = S.turns.find(t => t.id === S.selectedTurnId);
+    const dateRange = activeTurn ? roundDateRange(activeTurn.matches, S.importLanguage) : '';
+    post({
+      type: 'import-kwcc-poster',
+      matches: [{ match: resolved, weekday, time, date, penaltiesText }],
+      competitionName: compName, turnName,
+      updatedLabel: dateRange || `${ti('updated')}: ${updateTime}`,
+      isResult: isPlayed,
+      formats: S.selectedFormats,
+      notificationText: notif
     });
-
-    let currentPortIndex = 0;
-    let isConnected = false;
-
-    // Helper: Load iframe if server is responsive, otherwise try next port
-    async function tryLoadUrl(url, isStored = false) {
-      console.log("Comprobando servidor en:", url);
-      const isUp = await checkServer(url, 5000); // 5 seconds timeout to allow Next.js compilation
-      
-      if (isUp) {
-        console.log("Servidor responde. Cargando iframe:", url);
-        iframe.src = url;
-      } else {
-        console.warn("Servidor inactivo en:", url);
-        if (isStored) {
-          currentPortIndex = 0;
-          tryNextPort();
-        } else {
-          currentPortIndex++;
-          tryNextPort();
-        }
-      }
-    }
-
-    async function tryNextPort() {
-      if (currentPortIndex < DEV_PORTS.length) {
-        const port = DEV_PORTS[currentPortIndex];
-        await tryLoadUrl(`http://localhost:${port}`);
-      } else {
-        showOffline("No se detectó ningún servidor de desarrollo activo en los puertos 3000, 3001 o 3002.");
-      }
-    }
-
-    function handleIframeConnected(url) {
-      if (!isConnected) {
-        isConnected = true;
-        
-        iframe.classList.remove('hidden');
-        loadingView.classList.add('hidden');
-        offlineView.classList.add('hidden');
-        urlInput.value = url;
-        
-        safeStorage.setItem('kama_plugin_url', url);
-        console.log("¡Conexión establecida con éxito en:", url);
-      }
-    }
-
-    function showOffline(customError = null) {
-      loadingView.classList.add('hidden');
-      iframe.classList.add('hidden');
-      offlineView.classList.remove('hidden');
-      
-      if (customError) {
-        errorMsg.textContent = customError;
-        errorMsg.style.display = 'block';
-      }
-      
-      const storedUrl = safeStorage.getItem('kama_plugin_url') || 'http://localhost:3000';
-      urlInput.value = storedUrl;
-    }
-
-    function loadIframe(url) {
-      isConnected = true; // Manual loading sets connected state directly
-      
-      iframe.src = url;
-      iframe.classList.remove('hidden');
-      loadingView.classList.add('hidden');
-      offlineView.classList.add('hidden');
-      urlInput.value = url;
-    }
-
-    // Connect button trigger (manually forced, bypassing fetch checks)
-    document.getElementById('connect-btn').addEventListener('click', async () => {
-      let targetUrl = urlInput.value.trim();
-      if (!targetUrl) {
-        targetUrl = 'http://localhost:3000';
-      }
-      if (!/^https?:\/\//i.test(targetUrl)) {
-        targetUrl = 'http://' + targetUrl;
-      }
-      
-      isConnected = false;
-      loadingView.classList.remove('hidden');
-      offlineView.classList.add('hidden');
-      iframe.classList.add('hidden');
-      
-      const isUp = await checkServer(targetUrl, 4000);
-      if (isUp) {
-        loadIframe(targetUrl);
-        safeStorage.setItem('kama_plugin_url', targetUrl);
-      } else {
-        showOffline("No se recibió respuesta del servidor en " + targetUrl + ". Asegúrate de haber ejecutado 'npm run dev'.");
-      }
+  } else {
+    post({
+      type: 'import-match-card',
+      match: resolved, competitionName: compName, turnName,
+      weekday, time, date,
+      updatedLabel: `${ti('updated')}: ${updateTime}`,
+      penaltiesText, isResult: isPlayed, notificationText: notif
     });
+  }
+}
 
-    // Single message event handler to route messages correctly without loopbacks
-    window.addEventListener('message', (event) => {
-      // 1. Message from the Next.js App Iframe -> Forward to Figma Sandbox
-      if (iframe && event.source === iframe.contentWindow) {
-        // Any message from the iframe confirms the connection is active!
-        if (!isConnected) {
-          handleIframeConnected(iframe.src);
-        }
-        
-        if (event.data && event.data.pluginMessage) {
-          parent.postMessage(event.data, '*');
-        }
-      }
-      // 2. Message from Figma Sandbox -> Forward to Next.js App Iframe
-      else if (event.source !== window) {
-        if (event.data && event.data.pluginMessage) {
-          iframe.contentWindow.postMessage({
-            source: 'figma-sandbox',
-            payload: event.data.pluginMessage
-          }, '*');
-        }
-      }
+function importDayResult() {
+  const activeTurn = S.turns.find(t => t.id === S.selectedTurnId);
+  if (!activeTurn || !activeTurn.matches.length) return;
+  const updateTime = getUpdateTime(S.importLanguage);
+  const compName = getCompetitionName();
+  const turnName = translateTurnName(activeTurn.name, S.importLanguage);
+  const dateRange = roundDateRange(activeTurn.matches, S.importLanguage);
+  const payloadMatches = activeTurn.matches.map(m => buildPayloadMatch(m, activeTurn));
+
+  if (S.importStyle === 'kwcc') {
+    post({ type:'import-kwcc-poster', matches:payloadMatches, competitionName:compName, turnName, updatedLabel: dateRange || `${ti('updated')}: ${updateTime}`, isResult:true, formats:S.selectedFormats, notificationText:ti('importedSchedule') });
+  } else {
+    post({ type:'import-schedule', matches:payloadMatches, competitionName:compName, turnName, updatedLabel:`${ti('updated')}: ${updateTime}`, isResult:true, notificationText:ti('importedSchedule') });
+  }
+}
+
+function importSchedule() {
+  const activeTurn = S.turns.find(t => t.id === S.selectedTurnId);
+  if (!activeTurn || !activeTurn.matches.length) return;
+  const updateTime = getUpdateTime(S.importLanguage);
+  const compName = getCompetitionName();
+  const turnName = translateTurnName(activeTurn.name, S.importLanguage);
+  const dateRange = roundDateRange(activeTurn.matches, S.importLanguage);
+  const payloadMatches = activeTurn.matches.map(m => {
+    const resolved = resolveMatch(m);
+    const { weekday, time, date } = formatMatchDate(resolved.date, S.importLanguage);
+    return { match: resolved, weekday, time, date, penaltiesText: undefined };
+  });
+
+  if (S.importStyle === 'kwcc') {
+    post({ type:'import-kwcc-poster', matches:payloadMatches, competitionName:compName, turnName, updatedLabel: dateRange || `${ti('updated')}: ${updateTime}`, isResult:false, formats:S.selectedFormats, notificationText:ti('importedSchedule') });
+  } else {
+    post({ type:'import-schedule', matches:payloadMatches, competitionName:compName, turnName, updatedLabel:`${ti('updated')}: ${updateTime}`, isResult:false, notificationText:ti('importedSchedule') });
+  }
+}
+
+// ─── Label sync ───────────────────────────────────────────────────────────────
+function applyLabels() {
+  const lang = S.language;
+  document.getElementById('lbl-competition').textContent = t('competition');
+  document.getElementById('lbl-season').textContent = t('season');
+  document.getElementById('lbl-round').textContent = t('round');
+  document.getElementById('lbl-language').textContent = t('language');
+  document.getElementById('lbl-import-result').textContent = t('importResult');
+  document.getElementById('lbl-import-schedule').textContent = t('importSchedule');
+  document.getElementById('header-user').textContent = `${t('connected')}: ${S.credentials ? S.credentials.username : ''}`;
+  document.getElementById('pref-title-label').textContent = t('preferences');
+  document.getElementById('pref-lbl-language').textContent = t('language');
+  document.getElementById('pref-lbl-style').textContent = t('style');
+  document.getElementById('pref-lbl-formats').textContent = t('formats');
+  document.getElementById('pref-connected-label').textContent = t('connected');
+  document.getElementById('pref-username-display').textContent = S.credentials ? S.credentials.username : '';
+  document.getElementById('btn-logout').textContent = t('disconnect');
+  document.getElementById('pref-language').value = lang;
+  document.getElementById('pref-style').value = S.importStyle;
+  document.getElementById('fmt-stories').checked = S.selectedFormats.stories;
+  document.getElementById('fmt-portraits').checked = S.selectedFormats.portraits;
+  document.getElementById('fmt-thumbs').checked = S.selectedFormats.thumbs;
+  document.getElementById('pref-formats-wrapper').style.display = S.importStyle === 'kwcc' ? 'block' : 'none';
+  // Re-render turns labels
+  if (S.turns.length > 0) {
+    const sel = document.getElementById('sel-turn');
+    Array.from(sel.options).forEach((o, i) => {
+      if (S.turns[i]) o.textContent = translateTurnName(S.turns[i].name, lang);
     });
+  }
+}
 
-    // Auto-connect flow on startup
-    function initConnection() {
-      errorMsg.style.display = 'none';
-      loadingView.classList.remove('hidden');
-      offlineView.classList.add('hidden');
-      iframe.classList.add('hidden');
+// ─── Event listeners ──────────────────────────────────────────────────────────
+// Login
+document.getElementById('btn-login').addEventListener('click', () => {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  const err = document.getElementById('login-error');
+  if (!user || !pass) { err.textContent = 'Completa usuario y contraseña.'; err.classList.add('show'); return; }
+  err.classList.remove('show');
+  S.credentials = { username: user, password: pass };
+  post({ type:'set-credentials', username:user, password:pass });
+});
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-login').click(); });
 
-      const storedUrl = safeStorage.getItem('kama_plugin_url');
-      if (storedUrl) {
-        tryLoadUrl(storedUrl, true);
-      } else {
-        currentPortIndex = 0;
-        tryNextPort();
-      }
-    }
+// Selectors
+document.getElementById('sel-competition').addEventListener('change', async e => {
+  S.selectedCompId = Number(e.target.value);
+  S.seasons = []; S.turns = []; S.selectedSeasonId = null; S.selectedTurnId = null;
+  renderSeasons(); renderTurns(); renderMatches();
+  await loadSeasons(S.selectedCompId);
+});
 
-    initConnection();
-  </script>
+document.getElementById('sel-season').addEventListener('change', async e => {
+  S.selectedSeasonId = Number(e.target.value);
+  S.turns = []; S.selectedTurnId = null;
+  renderTurns(); renderMatches();
+  await loadSeasonDetails(S.selectedSeasonId);
+});
+
+document.getElementById('sel-turn').addEventListener('change', e => {
+  S.selectedTurnId = Number(e.target.value);
+  renderMatches();
+});
+
+document.getElementById('sel-import-lang').addEventListener('change', async e => {
+  S.importLanguage = e.target.value;
+  if (S.selectedSeasonId) await loadSeasonDetails(S.selectedSeasonId);
+  else renderMatches();
+});
+
+// Actions
+document.getElementById('btn-import-result').addEventListener('click', importDayResult);
+document.getElementById('btn-import-schedule').addEventListener('click', importSchedule);
+
+// Prefs nav
+document.getElementById('btn-goto-prefs').addEventListener('click', () => {
+  applyLabels();
+  showView('view-preferences');
+});
+document.getElementById('btn-back-prefs').addEventListener('click', () => {
+  showView('view-main');
+  applyLabels();
+  renderMatches();
+});
+
+// Pref controls
+document.getElementById('pref-language').addEventListener('change', e => {
+  S.language = e.target.value;
+  post({ type:'set-language', language:S.language });
+  applyLabels();
+});
+
+document.getElementById('pref-style').addEventListener('change', e => {
+  S.importStyle = e.target.value;
+  document.getElementById('pref-formats-wrapper').style.display = S.importStyle === 'kwcc' ? 'block' : 'none';
+  post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats });
+});
+
+['stories','portraits','thumbs'].forEach(key => {
+  document.getElementById(`fmt-${key}`).addEventListener('change', e => {
+    S.selectedFormats[key] = e.target.checked;
+    post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats });
+  });
+});
+
+document.getElementById('btn-logout').addEventListener('click', () => {
+  post({ type:'clear-credentials' });
+});
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+post({ type:'get-credentials' });
+</script>
 </body>
 </html>
