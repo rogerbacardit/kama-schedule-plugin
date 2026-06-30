@@ -493,7 +493,7 @@ async function createKWCCArtboard(
     const COL_LEFT = 40;    // left column x-start
     const COL_RIGHT = 1010; // right column x-start  (40 + 870 + 100 = 1010; 1010+870+40=1920 ✓)
     const T_ROW_H = 190;    // match row height for Thumbs
-    const T_ROW_GAP = 15;   // vertical gap between rows within a column
+    const T_ROW_GAP = -15;  // vertical gap between rows within a column
     const T_START_Y = 302;  // y-start of first row (below header)
 
     // Per-row element sizes (within a 870px-wide column)
