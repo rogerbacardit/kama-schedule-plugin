@@ -407,14 +407,14 @@ async function createKWCCArtboard(matches, competitionName, turnName, updatedLab
         const COL_RIGHT = 1010; // right column x-start  (40 + 870 + 100 = 1010; 1010+870+40=1920 ✓)
         const T_ROW_H = 190; // match row height for Thumbs
         const T_ROW_GAP = 15; // vertical gap between rows within a column
-        const T_START_Y = 289; // y-start of first row (below header)
+        const T_START_Y = 302; // y-start of first row (below header)
         // Per-row element sizes (within a 870px-wide column)
         const T_LOGO_W = 285; // logo width
         const T_AWAY_X = COL_W - T_LOGO_W; // = 585 (away logo x-offset inside row)
         const T_BADGE_W = 260; // time badge width
         const T_BADGE_H = 109; // time badge height
         const T_BADGE_X = Math.round((COL_W - T_BADGE_W) / 2); // = 305
-        const T_BADGE_Y = Math.round((T_ROW_H - T_BADGE_H) / 2); // = 35
+        const T_BADGE_Y = Math.round((T_ROW_H - T_BADGE_H) / 2) + 14; // centered + 14px offset
         // Split matches into left and right columns
         const half = Math.ceil(matches.length / 2);
         for (let ci = 0; ci < 2; ci++) {
