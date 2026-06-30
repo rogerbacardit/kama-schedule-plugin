@@ -539,11 +539,13 @@ async function loadCompetitions() {
       S.selectedCompId = S.competitions[0].id;
       document.getElementById('sel-competition').value = S.selectedCompId;
       await loadSeasons(S.selectedCompId);
+    } else {
+      S.loading = false;
+      renderMatches();
     }
   } catch(e) {
+    S.loading = false;
     showMatchError(e.message);
-  } finally {
-    setLoading(false);
   }
 }
 
@@ -562,11 +564,13 @@ async function loadSeasons(compId) {
       S.selectedSeasonId = current.id;
       document.getElementById('sel-season').value = S.selectedSeasonId;
       await loadSeasonDetails(S.selectedSeasonId);
+    } else {
+      S.loading = false;
+      renderMatches();
     }
   } catch(e) {
+    S.loading = false;
     showMatchError(e.message);
-  } finally {
-    setLoading(false);
   }
 }
 
@@ -611,11 +615,11 @@ async function loadSeasonDetails(seasonId) {
       S.selectedTurnId = S.turns[0].id;
       document.getElementById('sel-turn').value = S.selectedTurnId;
     }
-    renderMatches();
   } catch(e) {
     showMatchError(e.message);
   } finally {
-    setLoading(false);
+    S.loading = false;
+    renderMatches();
   }
 }
 
@@ -686,7 +690,6 @@ function updateActionButtons() {
 }
 
 function renderMatches() {
-  if (S.loading) return;
   const list = document.getElementById('matches-list');
   const activeTurn = S.turns.find(t => t.id === S.selectedTurnId);
   const matches = activeTurn ? activeTurn.matches : [];
