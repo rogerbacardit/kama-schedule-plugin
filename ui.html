@@ -557,7 +557,45 @@ async function loadSeasons(compId) {
   try {
     const data = await kamaFetch(`competitions/${compId}/seasons`, S.importLanguage);
     const comp = data.data || {};
-    S.seasons = comp.seasons || [];
+    const rawSeasons = comp.seasons || [];
+
+    // Detect duplicate names and annotate with year from first match date
+    const nameCount = {};
+    rawSeasons.forEach(s => { nameCount[s.name] = (nameCount[s.name] || 0) + 1; });
+    const duplicateIds = rawSeasons.filter(s => nameCount[s.name] > 1).map(s => s.id);
+
+    let yearMap = {};
+    if (duplicateIds.length > 0) {
+      const results = await Promise.all(
+        duplicateIds.map(async id => {
+          try {
+            const detail = await kamaFetch(`seasons/${id}`);
+            const season = (detail.data) || detail || {};
+            let firstDate = null;
+            const phases = season.phases || [];
+            outer: for (const phase of phases) {
+              for (const group of (phase.groups || [])) {
+                for (const turn of (group.turns || [])) {
+                  for (const match of (turn.matches || [])) {
+                    if (match.date) { firstDate = match.date; break outer; }
+                  }
+                }
+              }
+            }
+            return { id, year: firstDate ? new Date(firstDate).getFullYear() : null };
+          } catch { return { id, year: null }; }
+        })
+      );
+      results.forEach(r => { if (r.year) yearMap[r.id] = r.year; });
+    }
+
+    S.seasons = rawSeasons.map(s => ({
+      ...s,
+      displayName: (nameCount[s.name] > 1 && yearMap[s.id])
+        ? `${s.name} ${yearMap[s.id]}`
+        : s.name
+    }));
+
     renderSeasons();
     if (S.seasons.length > 0) {
       const current = S.seasons.find(s => s.isCurrent) || S.seasons[0];
@@ -655,7 +693,8 @@ function renderSeasons() {
   S.seasons.forEach(s => {
     const o = document.createElement('option');
     o.value = s.id;
-    o.textContent = s.isCurrent ? `${s.name} • Actual` : s.name;
+    const label = s.displayName || s.name;
+    o.textContent = s.isCurrent ? `${label} • Actual` : label;
     sel.appendChild(o);
   });
   if (S.selectedSeasonId) sel.value = S.selectedSeasonId;
