@@ -1099,10 +1099,13 @@ document.getElementById('btn-back-prefs').addEventListener('click', () => {
 });
 
 // Pref controls
-document.getElementById('pref-language').addEventListener('change', e => {
+document.getElementById('pref-language').addEventListener('change', async e => {
   S.language = e.target.value;
+  S.importLanguage = e.target.value;
   post({ type:'set-language', language:S.language });
   applyLabels();
+  if (S.selectedSeasonId) await loadSeasonDetails(S.selectedSeasonId);
+  else renderMatches();
 });
 
 document.getElementById('pref-style').addEventListener('change', e => {
