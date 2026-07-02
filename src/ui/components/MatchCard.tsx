@@ -5,15 +5,19 @@ import { formatMatchDate } from '../../utils/dateFormatter';
 interface MatchCardProps {
   match: ResolvedMatch;
   turnName: string;
-  language: 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar';
+  language: 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar' | 'de';
   competitionName: string;
+  importStyle: 'standard' | 'kwcc';
+  selectedFormats: { stories: boolean; portraits: boolean; thumbs: boolean };
 }
 
 export const MatchCard: React.FC<MatchCardProps> = ({ 
   match, 
   turnName, 
   language,
-  competitionName
+  competitionName,
+  importStyle,
+  selectedFormats
 }) => {
   const { weekday, time, date } = formatMatchDate(match.date, language);
   
@@ -50,6 +54,11 @@ export const MatchCard: React.FC<MatchCardProps> = ({
       updatedLabel: `تم التحديث: `,
       importedNotify: `تم استيراد مباراة ${match.homeTeam.shortName || match.homeTeam.name} ضد ${match.awayTeam.shortName || match.awayTeam.name}!`,
       penalties: "ر.ت"
+    },
+    de: {
+      updatedLabel: `Aktualisiert: `,
+      importedNotify: `Spiel ${match.homeTeam.shortName || match.homeTeam.name} vs ${match.awayTeam.shortName || match.awayTeam.name} importiert!`,
+      penalties: "Elf."
     }
   };
 
@@ -63,7 +72,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         pt: 'pt-BR',
         fr: 'fr-FR',
         it: 'it-IT',
-        ar: 'ar-SA'
+        ar: 'ar-SA',
+        de: 'de-DE'
       };
       const locale = localeMap[language] || 'es-ES';
       const updateTime = new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
@@ -74,20 +84,44 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         ? `${tLocal.penalties} (${homeScoreP || 0} - ${awayScoreP || 0})`
         : undefined;
 
-      window.parent.postMessage({
-        pluginMessage: {
-          type: 'import-match-card',
+      if (importStyle === 'kwcc') {
+        const payloadMatch = {
           match,
-          competitionName,
-          turnName,
           weekday,
           time,
           date,
-          updatedLabel: `${tLocal.updatedLabel}${updateTime}`,
-          penaltiesText,
-          notificationText: tLocal.importedNotify
-        }
-      }, '*');
+          penaltiesText
+        };
+        window.parent.postMessage({
+          pluginMessage: {
+            type: 'import-kwcc-poster',
+            matches: [payloadMatch],
+            competitionName,
+            turnName,
+            updatedLabel: `${tLocal.updatedLabel}${updateTime}`,
+            isResult: isPlayed,
+            formats: selectedFormats,
+            language,
+            notificationText: tLocal.importedNotify
+          }
+        }, '*');
+      } else {
+        window.parent.postMessage({
+          pluginMessage: {
+            type: 'import-match-card',
+            match,
+            competitionName,
+            turnName,
+            weekday,
+            time,
+            date,
+            updatedLabel: `${tLocal.updatedLabel}${updateTime}`,
+            penaltiesText,
+            isResult: isPlayed,
+            notificationText: tLocal.importedNotify
+          }
+        }, '*');
+      }
     }
   };
 
