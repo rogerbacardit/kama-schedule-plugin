@@ -155,11 +155,23 @@
     }
     select:focus { border-color: rgba(251,184,0,0.45); }
     select:disabled { opacity: 0.35; cursor: not-allowed; }
+    #num-vs-row { display: flex; align-items: center; gap: 8px; }
+    #num-vs-row .sel-label { white-space: nowrap; flex-shrink: 0; }
+    #num-vs-row input[type="number"] { flex: 1; min-width: 0; }
+    input[type="number"] {
+      background: rgba(22,22,26,0.85); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 11px; padding: 8px 10px; font-size: 11px; color: #fff;
+      font-weight: 600; outline: none; transition: border-color 0.2s;
+      font-family: inherit; width: 100%; box-sizing: border-box;
+    }
+    input[type="number"]:focus { border-color: rgba(251,184,0,0.45); }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { opacity: 0.4; margin-right: 4px; }
 
     /* Turns row */
     .turns-section { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
     .turns-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
     .btn-result {
       display: flex; align-items: center; justify-content: center; gap: 5px;
       padding: 9px 8px; border-radius: 11px; font-size: 10px; font-weight: 800;
@@ -251,6 +263,53 @@
       cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.06em; font-family: 'Outfit', sans-serif;
     }
     .btn-logout:hover { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.1); color: var(--red); }
+
+    /* Timezone grid */
+    .tz-box {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px;
+      padding: 12px 14px;
+      background: rgba(22,22,26,0.45); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px;
+    }
+
+    /* Toggle HORAS LOCALES */
+    .schedule-col { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .schedule-col .btn-result { width: 100%; }
+    .toggle-lh {
+      height: 36px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      display: flex; align-items: center;
+      cursor: pointer; padding: 4px;
+      flex-direction: row-reverse;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .toggle-lh:hover { border-color: rgba(255,255,255,0.2); }
+    .toggle-lh.on {
+      flex-direction: row;
+      border-color: rgba(251,184,0,0.5);
+      background: rgba(251,184,0,0.09);
+    }
+    .toggle-lh-knob {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: rgba(255,255,255,0.35);
+      transition: background 0.25s, color 0.25s, border-color 0.25s;
+    }
+    .toggle-lh.on .toggle-lh-knob {
+      background: var(--primary); border-color: var(--primary); color: #000;
+    }
+    .toggle-lh-label {
+      flex: 1;
+      font-size: 8px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
+      color: rgba(255,255,255,0.3); text-align: center;
+      font-family: 'Outfit', sans-serif;
+      transition: color 0.25s;
+    }
+    .toggle-lh.on .toggle-lh-label { color: var(--primary); }
   </style>
 </head>
 <body>
@@ -340,13 +399,19 @@
     </div>
     <div class="action-grid">
       <button class="btn-result primary" id="btn-import-result">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span id="lbl-import-result">IMPORT DAY RESULT</span>
+        <span id="lbl-import-result">DAY RESULT</span>
       </button>
       <button class="btn-result secondary" id="btn-import-schedule">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        <span id="lbl-import-schedule">IMPORT SCHEDULE</span>
+        <span id="lbl-import-schedule">SCHEDULE</span>
       </button>
+      <button class="toggle-lh" id="toggle-local-hours">
+        <span class="toggle-lh-knob"></span>
+        <span class="toggle-lh-label" id="lbl-toggle-lh">LOCAL TIME</span>
+      </button>
+    </div>
+    <div id="num-vs-row" style="display:none">
+      <span class="sel-label">NUM. VS</span>
+      <input type="number" id="inp-num-vs" min="0" max="32" step="1" placeholder="0 = todos">
     </div>
   </div>
 
@@ -367,24 +432,33 @@
   </div>
 
   <div class="pref-section">
-    <div class="pref-label" id="pref-lbl-language">Idioma de interfaz</div>
-    <select id="pref-language">
-      <option value="es">Español</option>
-      <option value="en">English</option>
-      <option value="pt">Português (BR)</option>
-      <option value="fr">Français</option>
-      <option value="it">Italiano</option>
-      <option value="de">Deutsch</option>
-      <option value="ar">العربية</option>
-    </select>
-  </div>
-
-  <div class="pref-section">
     <div class="pref-label" id="pref-lbl-style">Estilo de diseño</div>
     <select id="pref-style">
       <option value="standard">Estándar</option>
       <option value="kwcc">Kings World Cup Clubs</option>
     </select>
+  </div>
+
+  <div id="pref-timezones-wrapper" class="pref-section">
+    <div class="pref-label" id="lbl-main-tz-label">Huso Principal</div>
+    <select id="sel-main-tz">
+      <option value="eur">EUR</option>
+      <option value="cdmx">CDMX</option>
+      <option value="bra">BRA</option>
+      <option value="ksa">KSA</option>
+    </select>
+    <div class="pref-label" id="lbl-timezones-header">HUSOS A INCLUIR</div>
+    <div class="tz-box">
+      <label class="checkbox-row"><input type="checkbox" id="tz-eur"> EUR</label>
+      <label class="checkbox-row"><input type="checkbox" id="tz-uk"> UK</label>
+      <label class="checkbox-row"><input type="checkbox" id="tz-sau-tur"> SAU/TUR</label>
+      <label class="checkbox-row"><input type="checkbox" id="tz-cdmx"> CDMX</label>
+      <label class="checkbox-row"><input type="checkbox" id="tz-brt"> BRT</label>
+      <label class="checkbox-row"><input type="checkbox" id="tz-usc"> US-C</label>
+      <label class="checkbox-row"><input type="checkbox" id="tz-usw"> US-W</label>
+      <label class="checkbox-row"><input type="checkbox" id="tz-use"> US-E</label>
+      <label class="checkbox-row"><input type="checkbox" id="tz-jpn"> JPN</label>
+    </div>
   </div>
 
   <div id="pref-formats-wrapper" style="display:none">
@@ -421,6 +495,10 @@ const S = {
   importLanguage: 'es',
   importStyle: 'standard',
   selectedFormats: { stories: true, portraits: true, thumbs: true },
+  localHours: false,
+  selectedTimezones: { eur: true, uk: true, sauTur: true, cdmx: true, brt: true, usC: true, usW: true, usE: true, jpn: true },
+  mainTimezone: 'eur',
+  numVs: 0,
   competitions: [],
   seasons: [],
   turns: [],
@@ -433,15 +511,46 @@ const S = {
   importLangInitialized: false,
 };
 
+// ─── Timezone map ─────────────────────────────────────────────────────────────
+const TZ_MAP = [
+  { key: 'eur',    el: 'tz-eur',     label: 'EUR' },
+  { key: 'uk',     el: 'tz-uk',      label: 'UK' },
+  { key: 'sauTur', el: 'tz-sau-tur', label: 'SAU/TUR' },
+  { key: 'cdmx',   el: 'tz-cdmx',    label: 'CDMX' },
+  { key: 'brt',    el: 'tz-brt',     label: 'BRT' },
+  { key: 'usC',    el: 'tz-usc',     label: 'US-C' },
+  { key: 'usW',    el: 'tz-usw',     label: 'US-W' },
+  { key: 'usE',    el: 'tz-use',     label: 'US-E' },
+  { key: 'jpn',    el: 'tz-jpn',     label: 'JPN' },
+];
+
+// ─── Timezone IANA map ────────────────────────────────────────────────────────
+const TZ_IANA = {
+  eur:    'Europe/Madrid',
+  uk:     'Europe/London',
+  sauTur: 'Asia/Riyadh',
+  cdmx:   'America/Mexico_City',
+  brt:    'America/Sao_Paulo',
+  usC:    'America/Chicago',
+  usW:    'America/Los_Angeles',
+  usE:    'America/New_York',
+  jpn:    'Asia/Tokyo',
+};
+
+const MAIN_TZ_IANA  = { eur: 'Europe/Madrid', cdmx: 'America/Mexico_City', bra: 'America/Sao_Paulo', ksa: 'Asia/Riyadh' };
+const MAIN_TZ_LABEL = { eur: 'EUR', cdmx: 'CDMX', bra: 'BRA', ksa: 'KSA' };
+// Maps mainTimezone key → TZ_MAP key (to exclude from secondary line)
+const MAIN_TZ_KEY_MAP = { eur: 'eur', cdmx: 'cdmx', bra: 'brt', ksa: 'sauTur' };
+
 // ─── Translations ─────────────────────────────────────────────────────────────
 const T = {
-  es: { competition:'Competición', season:'Temporada', language:'Idioma', round:'Jornada', connected:'CONECTADO', loading:'CARGANDO PARTIDOS...', noMatches:'No hay partidos programados', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'DESCONECTAR', updated:'Actualizado', penalties:'Pen.', importedMatch:'¡Partido importado!', importedSchedule:'¡Jornada importada al lienzo!', preferences:'Preferencias', style:'Estilo de Diseño', standard:'Estándar', kwcc:'Kings World Cup Clubs', formats:'Formatos Canvas', connecting:'CONECTANDO...', vs:'VS' },
-  en: { competition:'Competition', season:'Season', language:'Language', round:'Matchday', connected:'CONNECTED', loading:'LOADING MATCHES...', noMatches:'No matches scheduled for this matchday', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'DISCONNECT', updated:'Updated', penalties:'Pen.', importedMatch:'Match imported!', importedSchedule:'Schedule imported to canvas!', preferences:'Preferences', style:'Design Style', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Canvas Formats', connecting:'CONNECTING...', vs:'VS' },
-  pt: { competition:'Competição', season:'Temporada', language:'Idioma', round:'Rodada', connected:'CONECTADO', loading:'CARREGANDO PARTIDAS...', noMatches:'Não há partidas agendadas', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'DESCONECTAR', updated:'Atualizado', penalties:'Pên.', importedMatch:'Partida importada!', importedSchedule:'Rodada importada para o canvas!', preferences:'Preferências', style:'Estilo de Design', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Formatos de Tela', connecting:'CONECTANDO...', vs:'VS' },
-  fr: { competition:'Compétition', season:'Saison', language:'Langue', round:'Journée', connected:'CONNECTÉ', loading:'CHARGEMENT DES MATCHS...', noMatches:'Aucun match prévu pour cette journée', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'SE DÉCONNECTER', updated:'Mis à jour', penalties:'T.a.b.', importedMatch:'Match importé !', importedSchedule:'Journée importée sur le canvas !', preferences:'Préférences', style:'Style de Design', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Formats Canvas', connecting:'CONNEXION...', vs:'VS' },
-  it: { competition:'Competizione', season:'Stagione', language:'Lingua', round:'Giornata', connected:'CONNESSO', loading:'CARICAMENTO PARTITE...', noMatches:'Non ci sono partite in programma', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'DISCONNETTI', updated:'Aggiornato', penalties:'Rig.', importedMatch:'Partita importata!', importedSchedule:'Giornata importata nel canvas!', preferences:'Preferenze', style:'Stile di Design', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Formati Canvas', connecting:'CONNESSIONE...', vs:'VS' },
-  de: { competition:'Wettbewerb', season:'Saison', language:'Sprache', round:'Spieltag', connected:'VERBUNDEN', loading:'SPIELE WERDEN GELADEN...', noMatches:'Keine Spiele für diesen Spieltag geplant', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'ABMELDEN', updated:'Aktualisiert', penalties:'Elf.', importedMatch:'Spiel importiert!', importedSchedule:'Spieltag in Canvas importiert!', preferences:'Einstellungen', style:'Designstil', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Canvas-Formate', connecting:'VERBINDEN...', vs:'VS' },
-  ar: { competition:'المنافسة', season:'الموسم', language:'اللغة', round:'الجولة', connected:'متصل', loading:'جاري تحميل المباريات...', noMatches:'لا توجد مباريات مجدولة', importResult:'IMPORT DAY RESULT', importSchedule:'IMPORT SCHEDULE', disconnect:'تسجيل الخروج', updated:'تم التحديث', penalties:'ر.ت', importedMatch:'تم استيراد المباراة!', importedSchedule:'تم استيراد الجدول!', preferences:'التفضيلات', style:'نمط التصميم', standard:'قياسي', kwcc:'Kings World Cup Clubs', formats:'تنسيقات Canvas', connecting:'جاري الاتصال...', vs:'ضد' },
+  es: { competition:'Competición', season:'Temporada', language:'Idioma', round:'Jornada', connected:'CONECTADO', loading:'CARGANDO PARTIDOS...', noMatches:'No hay partidos programados', importResult:'DAY RESULT', importSchedule:'SCHEDULE', disconnect:'DESCONECTAR', updated:'Actualizado', penalties:'Pen.', importedMatch:'¡Partido importado!', importedSchedule:'¡Jornada importada al lienzo!', preferences:'Preferencias', style:'Estilo de Diseño', standard:'Estándar', kwcc:'Kings World Cup Clubs', formats:'Formatos Canvas', connecting:'CONECTANDO...', vs:'VS', localHours:'LOCAL TIME', timezonesHeader:'HUSOS A INCLUIR', mainTzLabel:'Huso Principal' },
+  en: { competition:'Competition', season:'Season', language:'Language', round:'Matchday', connected:'CONNECTED', loading:'LOADING MATCHES...', noMatches:'No matches scheduled for this matchday', importResult:'DAY RESULT', importSchedule:'SCHEDULE', disconnect:'DISCONNECT', updated:'Updated', penalties:'Pen.', importedMatch:'Match imported!', importedSchedule:'Schedule imported to canvas!', preferences:'Preferences', style:'Design Style', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Canvas Formats', connecting:'CONNECTING...', vs:'VS', localHours:'LOCAL TIME', timezonesHeader:'TIMEZONES TO INCLUDE', mainTzLabel:'Main Timezone' },
+  pt: { competition:'Competição', season:'Temporada', language:'Idioma', round:'Rodada', connected:'CONECTADO', loading:'CARREGANDO PARTIDAS...', noMatches:'Não há partidas agendadas', importResult:'DAY RESULT', importSchedule:'SCHEDULE', disconnect:'DESCONECTAR', updated:'Atualizado', penalties:'Pên.', importedMatch:'Partida importada!', importedSchedule:'Rodada importada para o canvas!', preferences:'Preferências', style:'Estilo de Design', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Formatos de Tela', connecting:'CONECTANDO...', vs:'VS', localHours:'LOCAL TIME', timezonesHeader:'FUSOS A INCLUIR', mainTzLabel:'Fuso Principal' },
+  fr: { competition:'Compétition', season:'Saison', language:'Langue', round:'Journée', connected:'CONNECTÉ', loading:'CHARGEMENT DES MATCHS...', noMatches:'Aucun match prévu pour cette journée', importResult:'DAY RESULT', importSchedule:'SCHEDULE', disconnect:'SE DÉCONNECTER', updated:'Mis à jour', penalties:'T.a.b.', importedMatch:'Match importé !', importedSchedule:'Journée importée sur le canvas !', preferences:'Préférences', style:'Style de Design', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Formats Canvas', connecting:'CONNEXION...', vs:'VS', localHours:'LOCAL TIME', timezonesHeader:'FUSEAUX À INCLURE', mainTzLabel:'Fuseau Principal' },
+  it: { competition:'Competizione', season:'Stagione', language:'Lingua', round:'Giornata', connected:'CONNESSO', loading:'CARICAMENTO PARTITE...', noMatches:'Non ci sono partite in programma', importResult:'DAY RESULT', importSchedule:'SCHEDULE', disconnect:'DISCONNETTI', updated:'Aggiornato', penalties:'Rig.', importedMatch:'Partita importata!', importedSchedule:'Giornata importata nel canvas!', preferences:'Preferenze', style:'Stile di Design', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Formati Canvas', connecting:'CONNESSIONE...', vs:'VS', localHours:'LOCAL TIME', timezonesHeader:'FUSI ORARI', mainTzLabel:'Fuso Principale' },
+  de: { competition:'Wettbewerb', season:'Saison', language:'Sprache', round:'Spieltag', connected:'VERBUNDEN', loading:'SPIELE WERDEN GELADEN...', noMatches:'Keine Spiele für diesen Spieltag geplant', importResult:'DAY RESULT', importSchedule:'SCHEDULE', disconnect:'ABMELDEN', updated:'Aktualisiert', penalties:'Elf.', importedMatch:'Spiel importiert!', importedSchedule:'Spieltag in Canvas importiert!', preferences:'Einstellungen', style:'Designstil', standard:'Standard', kwcc:'Kings World Cup Clubs', formats:'Canvas-Formate', connecting:'VERBINDEN...', vs:'VS', localHours:'LOCAL TIME', timezonesHeader:'ZEITZONEN', mainTzLabel:'Hauptzeitzone' },
+  ar: { competition:'المنافسة', season:'الموسم', language:'اللغة', round:'الجولة', connected:'متصل', loading:'جاري تحميل المباريات...', noMatches:'لا توجد مباريات مجدولة', importResult:'DAY RESULT', importSchedule:'SCHEDULE', disconnect:'تسجيل الخروج', updated:'تم التحديث', penalties:'ر.ت', importedMatch:'تم استيراد المباراة!', importedSchedule:'تم استيراد الجدول!', preferences:'التفضيلات', style:'نمط التصميم', standard:'قياسي', kwcc:'Kings World Cup Clubs', formats:'تنسيقات Canvas', connecting:'جاري الاتصال...', vs:'ضد', localHours:'LOCAL TIME', timezonesHeader:'المناطق الزمنية', mainTzLabel:'المنطقة الرئيسية' },
 };
 
 function t(key) {
@@ -470,7 +579,7 @@ window.addEventListener('message', (event) => {
   if (!msg) return;
 
   if (msg.type === 'credentials') {
-    const { username, password, language, importStyle, selectedFormats } = msg;
+    const { username, password, language, importStyle, selectedFormats, localHours, selectedTimezones } = msg;
     if (username && password) {
       S.credentials = { username, password };
     } else {
@@ -479,6 +588,10 @@ window.addEventListener('message', (event) => {
     if (language) S.language = language;
     if (importStyle) S.importStyle = importStyle;
     if (selectedFormats) S.selectedFormats = selectedFormats;
+    if (typeof msg.localHours === 'boolean') S.localHours = msg.localHours;
+    if (selectedTimezones) S.selectedTimezones = { ...S.selectedTimezones, ...selectedTimezones };
+    if (msg.mainTimezone) S.mainTimezone = msg.mainTimezone;
+    if (typeof msg.numVs === 'number') S.numVs = msg.numVs;
 
     if (!S.importLangInitialized) {
       S.importLanguage = S.language;
@@ -536,7 +649,8 @@ async function loadCompetitions() {
     S.competitions = data.data || [];
     renderCompetitions();
     if (S.competitions.length > 0) {
-      S.selectedCompId = S.competitions[0].id;
+      const defaultComp = S.competitions.find(c => c.name.toLowerCase().includes('kings world cup')) || S.competitions[0];
+      S.selectedCompId = defaultComp.id;
       document.getElementById('sel-competition').value = S.selectedCompId;
       await loadSeasons(S.selectedCompId);
     } else {
@@ -598,7 +712,8 @@ async function loadSeasons(compId) {
 
     renderSeasons();
     if (S.seasons.length > 0) {
-      const current = S.seasons.find(s => s.isCurrent) || S.seasons[0];
+      const defaultSeason = S.seasons.find(s => (s.displayName || s.name).toLowerCase().includes('kings world cup 2026'));
+      const current = defaultSeason || S.seasons.find(s => s.isCurrent) || S.seasons[0];
       S.selectedSeasonId = current.id;
       document.getElementById('sel-season').value = S.selectedSeasonId;
       await loadSeasonDetails(S.selectedSeasonId);
@@ -922,6 +1037,49 @@ function roundDateRange(matches, lang) {
   return `${wd}, ${dt}`.toUpperCase();
 }
 
+// ─── Local times line builder ─────────────────────────────────────────────────
+function buildMainTimezoneData(isoDate) {
+  if (!S.localHours || !isoDate || isoDate === 'TBD') return null;
+  const d = new Date(isoDate);
+  if (isNaN(d.getTime())) return null;
+  const iana = MAIN_TZ_IANA[S.mainTimezone];
+  if (!iana) return null;
+  try {
+    const hhmm = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit', minute: '2-digit', hour12: false, timeZone: iana
+    }).format(d);
+    return { label: MAIN_TZ_LABEL[S.mainTimezone] || S.mainTimezone.toUpperCase(), time: hhmm };
+  } catch { return null; }
+}
+
+function buildLocalTimesLine(isoDate) {
+  if (!S.localHours || !isoDate || isoDate === 'TBD') return null;
+  const d = new Date(isoDate);
+  if (isNaN(d.getTime())) return null;
+  const mainIana = MAIN_TZ_IANA[S.mainTimezone] || 'Europe/Madrid';
+  const mainDayKey = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric', month: '2-digit', day: '2-digit', timeZone: mainIana
+  }).format(d);
+  const excludeKey = MAIN_TZ_KEY_MAP[S.mainTimezone];
+  const parts = TZ_MAP
+    .filter(tz => S.selectedTimezones[tz.key] !== false && tz.key !== excludeKey)
+    .map(tz => {
+      try {
+        const hhmm = new Intl.DateTimeFormat('en-GB', {
+          hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ_IANA[tz.key]
+        }).format(d);
+        const dayKey = new Intl.DateTimeFormat('en-CA', {
+          year: 'numeric', month: '2-digit', day: '2-digit', timeZone: TZ_IANA[tz.key]
+        }).format(d);
+        const hourNum = parseInt(hhmm.split(':')[0], 10);
+        const nextDay = dayKey > mainDayKey;
+        return `${tz.label}${nextDay ? '(+1)' : ''} ${hourNum}h`;
+      } catch { return null; }
+    })
+    .filter(Boolean);
+  return parts.length > 0 ? parts.join(' | ') : null;
+}
+
 // ─── Import handlers ──────────────────────────────────────────────────────────
 function getUpdateTime(lang) {
   const localeMap = { es:'es-ES', en:'en-US', pt:'pt-BR', fr:'fr-FR', it:'it-IT', ar:'ar-SA', de:'de-DE' };
@@ -934,7 +1092,13 @@ function buildPayloadMatch(m, turn) {
   const hP = resolved.scores.homeScoreP, aP = resolved.scores.awayScoreP;
   const penaltiesText = (hP !== null || aP !== null)
     ? `${ti('penalties')} (${hP||0} - ${aP||0})` : undefined;
-  return { match: resolved, weekday, time, date, penaltiesText };
+  const mainTzData = buildMainTimezoneData(resolved.date);
+  const localTimesLine = buildLocalTimesLine(resolved.date);
+  return {
+    match: resolved, weekday, time: mainTzData ? mainTzData.time : time,
+    date, penaltiesText, localTimesLine,
+    mainTimezoneLabel: mainTzData ? mainTzData.label : undefined
+  };
 }
 
 function getCompetitionName() {
@@ -953,26 +1117,41 @@ function importSingleMatch(resolved, turn) {
   const notif = `${resolved.homeTeam.shortName || resolved.homeTeam.name} vs ${resolved.awayTeam.shortName || resolved.awayTeam.name} — ${ti('importedMatch')}`;
 
   if (S.importStyle === 'kwcc') {
-    const activeTurn = S.turns.find(t => t.id === S.selectedTurnId);
-    const dateRange = activeTurn ? roundDateRange(activeTurn.matches, S.importLanguage) : '';
+    const mainTzDataRow = buildMainTimezoneData(resolved.date);
     post({
-      type: 'import-kwcc-poster',
-      matches: [{ match: resolved, weekday, time, date, penaltiesText }],
-      competitionName: compName, turnName,
-      updatedLabel: dateRange || `${ti('updated')}: ${updateTime}`,
-      isResult: isPlayed,
-      formats: S.selectedFormats,
+      type: 'import-kwcc-row',
+      match: {
+        match: resolved,
+        weekday, time: mainTzDataRow ? mainTzDataRow.time : time, date,
+        penaltiesText,
+        isResult: isPlayed,
+        localTimesLine: buildLocalTimesLine(resolved.date),
+        mainTimezoneLabel: mainTzDataRow ? mainTzDataRow.label : undefined
+      },
       notificationText: notif
     });
   } else {
+    const mainTzData = buildMainTimezoneData(resolved.date);
     post({
       type: 'import-match-card',
       match: resolved, competitionName: compName, turnName,
-      weekday, time, date,
+      weekday, time: mainTzData ? mainTzData.time : time, date,
       updatedLabel: `${ti('updated')}: ${updateTime}`,
-      penaltiesText, isResult: isPlayed, notificationText: notif
+      penaltiesText, isResult: isPlayed, notificationText: notif,
+      localTimesLine: buildLocalTimesLine(resolved.date),
+      mainTimezoneLabel: mainTzData ? mainTzData.label : undefined
     });
   }
+}
+
+function sortAndLimitMatches(matches) {
+  const sorted = matches.slice().sort((a, b) => {
+    const da = new Date(a.date), db = new Date(b.date);
+    if (isNaN(da.getTime())) return 1;
+    if (isNaN(db.getTime())) return -1;
+    return da - db;
+  });
+  return S.numVs > 0 ? sorted.slice(0, S.numVs) : sorted;
 }
 
 function importDayResult() {
@@ -982,7 +1161,7 @@ function importDayResult() {
   const compName = getCompetitionName();
   const turnName = translateTurnName(activeTurn.name, S.importLanguage);
   const dateRange = roundDateRange(activeTurn.matches, S.importLanguage);
-  const payloadMatches = activeTurn.matches.map(m => buildPayloadMatch(m, activeTurn));
+  const payloadMatches = sortAndLimitMatches(activeTurn.matches).map(m => buildPayloadMatch(m, activeTurn));
 
   if (S.importStyle === 'kwcc') {
     post({ type:'import-kwcc-poster', matches:payloadMatches, competitionName:compName, turnName, updatedLabel: dateRange || `${ti('updated')}: ${updateTime}`, isResult:true, formats:S.selectedFormats, notificationText:ti('importedSchedule') });
@@ -998,10 +1177,11 @@ function importSchedule() {
   const compName = getCompetitionName();
   const turnName = translateTurnName(activeTurn.name, S.importLanguage);
   const dateRange = roundDateRange(activeTurn.matches, S.importLanguage);
-  const payloadMatches = activeTurn.matches.map(m => {
+  const payloadMatches = sortAndLimitMatches(activeTurn.matches).map(m => {
     const resolved = resolveMatch(m);
     const { weekday, time, date } = formatMatchDate(resolved.date, S.importLanguage);
-    return { match: resolved, weekday, time, date, penaltiesText: undefined };
+    const mainTzData = buildMainTimezoneData(resolved.date);
+    return { match: resolved, weekday, time: mainTzData ? mainTzData.time : time, date, penaltiesText: undefined, localTimesLine: buildLocalTimesLine(resolved.date), mainTimezoneLabel: mainTzData ? mainTzData.label : undefined };
   });
 
   if (S.importStyle === 'kwcc') {
@@ -1022,18 +1202,24 @@ function applyLabels() {
   document.getElementById('lbl-import-schedule').textContent = t('importSchedule');
   document.getElementById('header-user').textContent = `${t('connected')}: ${S.credentials ? S.credentials.username : ''}`;
   document.getElementById('pref-title-label').textContent = t('preferences');
-  document.getElementById('pref-lbl-language').textContent = t('language');
   document.getElementById('pref-lbl-style').textContent = t('style');
   document.getElementById('pref-lbl-formats').textContent = t('formats');
   document.getElementById('pref-connected-label').textContent = t('connected');
   document.getElementById('pref-username-display').textContent = S.credentials ? S.credentials.username : '';
   document.getElementById('btn-logout').textContent = t('disconnect');
-  document.getElementById('pref-language').value = lang;
   document.getElementById('pref-style').value = S.importStyle;
   document.getElementById('fmt-stories').checked = S.selectedFormats.stories;
   document.getElementById('fmt-portraits').checked = S.selectedFormats.portraits;
   document.getElementById('fmt-thumbs').checked = S.selectedFormats.thumbs;
+  document.getElementById('lbl-toggle-lh').textContent = t('localHours');
+  document.getElementById('toggle-local-hours').classList.toggle('on', S.localHours);
+  document.getElementById('lbl-main-tz-label').textContent = t('mainTzLabel');
+  document.getElementById('sel-main-tz').value = S.mainTimezone;
+  document.getElementById('lbl-timezones-header').textContent = t('timezonesHeader');
+  TZ_MAP.forEach(tz => { document.getElementById(tz.el).checked = S.selectedTimezones[tz.key] !== false; });
   document.getElementById('pref-formats-wrapper').style.display = S.importStyle === 'kwcc' ? 'block' : 'none';
+  document.getElementById('num-vs-row').style.display = S.importStyle === 'kwcc' ? 'flex' : 'none';
+  document.getElementById('inp-num-vs').value = S.numVs > 0 ? String(S.numVs) : '';
   // Re-render turns labels
   if (S.turns.length > 0) {
     const sel = document.getElementById('sel-turn');
@@ -1079,6 +1265,9 @@ document.getElementById('sel-turn').addEventListener('change', e => {
 
 document.getElementById('sel-import-lang').addEventListener('change', async e => {
   S.importLanguage = e.target.value;
+  S.language = e.target.value;
+  post({ type: 'set-language', language: e.target.value });
+  applyLabels();
   if (S.selectedSeasonId) await loadSeasonDetails(S.selectedSeasonId);
   else renderMatches();
 });
@@ -1099,26 +1288,42 @@ document.getElementById('btn-back-prefs').addEventListener('click', () => {
 });
 
 // Pref controls
-document.getElementById('pref-language').addEventListener('change', async e => {
-  S.language = e.target.value;
-  S.importLanguage = e.target.value;
-  post({ type:'set-language', language:S.language });
-  applyLabels();
-  if (S.selectedSeasonId) await loadSeasonDetails(S.selectedSeasonId);
-  else renderMatches();
-});
-
 document.getElementById('pref-style').addEventListener('change', e => {
   S.importStyle = e.target.value;
   document.getElementById('pref-formats-wrapper').style.display = S.importStyle === 'kwcc' ? 'block' : 'none';
-  post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats });
+  document.getElementById('num-vs-row').style.display = S.importStyle === 'kwcc' ? 'flex' : 'none';
+  post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats, localHours:S.localHours, selectedTimezones:S.selectedTimezones, mainTimezone:S.mainTimezone, numVs:S.numVs });
 });
 
 ['stories','portraits','thumbs'].forEach(key => {
   document.getElementById(`fmt-${key}`).addEventListener('change', e => {
     S.selectedFormats[key] = e.target.checked;
-    post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats });
+    post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats, localHours:S.localHours, selectedTimezones:S.selectedTimezones, mainTimezone:S.mainTimezone, numVs:S.numVs });
   });
+});
+
+document.getElementById('toggle-local-hours').addEventListener('click', () => {
+  S.localHours = !S.localHours;
+  document.getElementById('toggle-local-hours').classList.toggle('on', S.localHours);
+  post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats, localHours:S.localHours, selectedTimezones:S.selectedTimezones, mainTimezone:S.mainTimezone, numVs:S.numVs });
+});
+
+TZ_MAP.forEach(tz => {
+  document.getElementById(tz.el).addEventListener('change', e => {
+    S.selectedTimezones[tz.key] = e.target.checked;
+    post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats, localHours:S.localHours, selectedTimezones:S.selectedTimezones, mainTimezone:S.mainTimezone, numVs:S.numVs });
+  });
+});
+
+document.getElementById('sel-main-tz').addEventListener('change', e => {
+  S.mainTimezone = e.target.value;
+  post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats, localHours:S.localHours, selectedTimezones:S.selectedTimezones, mainTimezone:S.mainTimezone, numVs:S.numVs });
+});
+
+document.getElementById('inp-num-vs').addEventListener('change', e => {
+  S.numVs = Math.max(0, parseInt(e.target.value, 10) || 0);
+  e.target.value = S.numVs > 0 ? String(S.numVs) : '';
+  post({ type:'set-preferences', importStyle:S.importStyle, selectedFormats:S.selectedFormats, localHours:S.localHours, selectedTimezones:S.selectedTimezones, mainTimezone:S.mainTimezone, numVs:S.numVs });
 });
 
 document.getElementById('btn-logout').addEventListener('click', () => {

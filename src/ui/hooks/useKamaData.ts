@@ -72,7 +72,13 @@ export interface Credentials {
 
 export function useKamaData() {
   const [credentials, setCredentialsState] = useState<Credentials | null>(null);
-  const [language, setLanguageState] = useState<'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar'>('es');
+  const [language, setLanguageState] = useState<'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar' | 'de'>('es');
+  const [importStyle, setImportStyleState] = useState<'standard' | 'kwcc'>('standard');
+  const [selectedFormats, setSelectedFormatsState] = useState<{ stories: boolean; portraits: boolean; thumbs: boolean }>({
+    stories: true,
+    portraits: true,
+    thumbs: true
+  });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
 
@@ -99,7 +105,7 @@ export function useKamaData() {
       if (event.data && event.data.source === 'figma-sandbox') {
         const payload = event.data.payload;
         if (payload && payload.type === 'credentials') {
-          const { username, password, language } = payload;
+          const { username, password, language, importStyle, selectedFormats } = payload;
           if (username && password) {
             setCredentialsState({ username, password });
             setIsAuthenticated(true);
@@ -108,7 +114,13 @@ export function useKamaData() {
             setIsAuthenticated(false);
           }
           if (language) {
-            setLanguageState(language as 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar');
+            setLanguageState(language as 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar' | 'de');
+          }
+          if (importStyle) {
+            setImportStyleState(importStyle);
+          }
+          if (selectedFormats) {
+            setSelectedFormatsState(selectedFormats);
           }
           setIsAuthLoading(false);
         } else if (payload && payload.type === 'credentials-saved') {
@@ -131,11 +143,21 @@ export function useKamaData() {
     }, '*');
   }, []);
 
-  const changeLanguage = useCallback((lang: 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar') => {
+  const changeLanguage = useCallback((lang: 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar' | 'de') => {
     setLanguageState(lang);
     if (typeof window !== 'undefined') {
       window.parent.postMessage({
         pluginMessage: { type: 'set-language', language: lang }
+      }, '*');
+    }
+  }, []);
+
+  const savePreferences = useCallback((style: 'standard' | 'kwcc', formats: { stories: boolean; portraits: boolean; thumbs: boolean }) => {
+    setImportStyleState(style);
+    setSelectedFormatsState(formats);
+    if (typeof window !== 'undefined') {
+      window.parent.postMessage({
+        pluginMessage: { type: 'set-preferences', importStyle: style, selectedFormats: formats }
       }, '*');
     }
   }, []);
@@ -149,12 +171,16 @@ export function useKamaData() {
   }, []);
 
   // API Call Wrapper
-  const fetchFromKama = useCallback(async (endpoint: string, creds: Credentials) => {
+  const fetchFromKama = useCallback(async (endpoint: string, creds: Credentials, locale?: string) => {
     const auth = btoa(`${creds.username}:${creds.password}`);
-    const response = await fetch(`https://api.kingsleague.kama.sport/api/v1/${endpoint}`, {
+    const url = locale
+      ? `https://api.kingsleague.kama.sport/api/v1/${endpoint}${endpoint.includes('?') ? '&' : '?'}locale=${locale}`
+      : `https://api.kingsleague.kama.sport/api/v1/${endpoint}`;
+    const response = await fetch(url, {
       headers: {
         'Authorization': `Basic ${auth}`,
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        ...(locale ? { 'Accept-Language': locale } : {})
       }
     });
 
@@ -166,12 +192,12 @@ export function useKamaData() {
   }, []);
 
   // Load competitions list
-  const loadCompetitions = useCallback(async () => {
+  const loadCompetitions = useCallback(async (locale?: string) => {
     if (!credentials) return;
     setLoading(true);
     setError(null);
     try {
-      const responseData = await fetchFromKama('competitions', credentials);
+      const responseData = await fetchFromKama('competitions', credentials, locale);
       setCompetitions(responseData.data || []);
     } catch (e: any) {
       setError(e.message || 'Error cargando competiciones');
@@ -181,12 +207,12 @@ export function useKamaData() {
   }, [credentials, fetchFromKama]);
 
   // Load seasons list
-  const loadSeasons = useCallback(async (competitionId: number) => {
+  const loadSeasons = useCallback(async (competitionId: number, locale?: string) => {
     if (!credentials) return;
     setLoading(true);
     setError(null);
     try {
-      const responseData = await fetchFromKama(`competitions/${competitionId}/seasons`, credentials);
+      const responseData = await fetchFromKama(`competitions/${competitionId}/seasons`, credentials, locale);
       const competitionDetails = responseData.data || {};
       setSeasons(competitionDetails.seasons || []);
     } catch (e: any) {
@@ -197,15 +223,15 @@ export function useKamaData() {
   }, [credentials, fetchFromKama]);
 
   // Load season detail (turns/matches) and team mapping details
-  const loadSeasonDetails = useCallback(async (seasonId: number) => {
+  const loadSeasonDetails = useCallback(async (seasonId: number, locale?: string) => {
     if (!credentials) return;
     setLoading(true);
     setError(null);
     try {
       // 1. Fetch matches schedule structure
-      const responseData = await fetchFromKama(`seasons/${seasonId}`, credentials);
+      const responseData = await fetchFromKama(`seasons/${seasonId}`, credentials, locale);
       const seasonData = responseData.data || {};
-      
+
       // Extract all turns (jornadas)
       const extractedTurns: Turn[] = [];
       if (seasonData.phases) {
@@ -222,7 +248,7 @@ export function useKamaData() {
       setTurns(extractedTurns);
 
       // 2. Fetch team logos/colors mapping
-      const responseTeamsData = await fetchFromKama(`seasons/${seasonId}/teams`, credentials);
+      const responseTeamsData = await fetchFromKama(`seasons/${seasonId}/teams`, credentials, locale);
       const teamsData = responseTeamsData.data || {};
       const mapping: Record<number, TeamDetails> = {};
       if (teamsData.teams) {
@@ -273,6 +299,9 @@ export function useKamaData() {
     clearCredentials,
     language,
     changeLanguage,
+    importStyle,
+    selectedFormats,
+    savePreferences,
     competitions,
     seasons,
     turns,

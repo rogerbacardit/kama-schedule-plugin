@@ -12,7 +12,7 @@ export interface FormattedDate {
  * @param lang Preferred language ('es' | 'en' | 'ca')
  * @returns FormattedDate object containing weekday, time, and full date
  */
-export function formatMatchDate(isoString: string, lang: 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar' = 'es'): FormattedDate {
+export function formatMatchDate(isoString: string, lang: 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar' | 'de' = 'es'): FormattedDate {
   try {
     if (!isoString) {
       return { weekday: "TBD", time: "TBD", date: "TBD" };
@@ -31,7 +31,8 @@ export function formatMatchDate(isoString: string, lang: 'es' | 'en' | 'pt' | 'f
       pt: 'pt-BR',
       fr: 'fr-FR',
       it: 'it-IT',
-      ar: 'ar-SA'
+      ar: 'ar-SA',
+      de: 'de-DE'
     };
     const locale = localeMap[lang] || 'es-ES';
 
@@ -55,7 +56,7 @@ export function formatMatchDate(isoString: string, lang: 'es' | 'en' | 'pt' | 'f
     const rawDate = dateFormatter.format(d);
     
     let formattedDate = rawDate;
-    if (lang === 'es' || lang === 'pt' || lang === 'fr' || lang === 'it') {
+    if (lang === 'es' || lang === 'pt' || lang === 'fr' || lang === 'it' || lang === 'de') {
       const dateWords = rawDate.split(' ');
       formattedDate = dateWords
         .map((word) => {

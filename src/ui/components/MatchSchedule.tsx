@@ -4,7 +4,7 @@ import { useKamaData } from '../hooks/useKamaData';
 import { MatchCard } from './MatchCard';
 import { formatMatchDate } from '../../utils/dateFormatter';
 
-type Language = 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar';
+type Language = 'es' | 'en' | 'pt' | 'fr' | 'it' | 'ar' | 'de';
 
 const translations = {
   es: {
@@ -16,13 +16,19 @@ const translations = {
     loading: "CARGANDO PARTIDOS...",
     noMatches: "No hay partidos programados en esta jornada",
     importLabel: "Importar a Canvas",
-    importSchedule: "IMPORTAR JORNADA",
+    importSchedule: "IMPORT SCHEDULE",
+    importDayResult: "IMPORT DAY RESULT",
     disconnect: "Desconectar",
     updated: "Actualizado",
     penalties: "Pen.",
     importedNotify: "¡Partido importado!",
     importedScheduleNotify: "¡Jornada importada al lienzo!",
-    vs: "VS"
+    vs: "VS",
+    preferences: "Preferencias",
+    style: "Estilo de Diseño",
+    standard: "Estándar",
+    kwcc: "Kings World Cup Clubs",
+    formats: "Formatos Canvas"
   },
   en: {
     competition: "Competition",
@@ -34,12 +40,18 @@ const translations = {
     noMatches: "No matches scheduled for this matchday",
     importLabel: "Import to Canvas",
     importSchedule: "IMPORT SCHEDULE",
+    importDayResult: "IMPORT DAY RESULT",
     disconnect: "Disconnect",
     updated: "Updated",
     penalties: "Pen.",
     importedNotify: "Match imported!",
     importedScheduleNotify: "Schedule imported to canvas!",
-    vs: "VS"
+    vs: "VS",
+    preferences: "Preferences",
+    style: "Design Style",
+    standard: "Standard",
+    kwcc: "Kings World Cup Clubs",
+    formats: "Canvas Formats"
   },
   pt: {
     competition: "Competição",
@@ -50,13 +62,19 @@ const translations = {
     loading: "CARREGANDO PARTIDAS...",
     noMatches: "Não há partidas agendadas para esta rodada",
     importLabel: "Importar para Canvas",
-    importSchedule: "IMPORTAR RODADA",
+    importSchedule: "IMPORT SCHEDULE",
+    importDayResult: "IMPORT DAY RESULT",
     disconnect: "Desconectar",
     updated: "Atualizado",
     penalties: "Pên.",
     importedNotify: "Partida importada!",
     importedScheduleNotify: "Rodada importada para o canvas!",
-    vs: "VS"
+    vs: "VS",
+    preferences: "Preferências",
+    style: "Estilo de Design",
+    standard: "Standard",
+    kwcc: "Kings World Cup Clubs",
+    formats: "Formatos de Tela"
   },
   fr: {
     competition: "Compétition",
@@ -67,13 +85,19 @@ const translations = {
     loading: "CHARGEMENT DES MATCHS...",
     noMatches: "Aucun match prévu pour cette journée",
     importLabel: "Importer vers Canvas",
-    importSchedule: "IMPORTER LA JOURNÉE",
+    importSchedule: "IMPORT SCHEDULE",
+    importDayResult: "IMPORT DAY RESULT",
     disconnect: "Se déconnecter",
     updated: "Mis à jour",
     penalties: "T.a.b.",
     importedNotify: "Match importé !",
     importedScheduleNotify: "Journée importée sur le canvas !",
-    vs: "VS"
+    vs: "VS",
+    preferences: "Préférences",
+    style: "Style de Design",
+    standard: "Standard",
+    kwcc: "Kings World Cup Clubs",
+    formats: "Formats Canvas"
   },
   it: {
     competition: "Competizione",
@@ -84,13 +108,19 @@ const translations = {
     loading: "CARICAMENTO PARTITE...",
     noMatches: "Non ci sono partite in programma per questa giornata",
     importLabel: "Importa nel Canvas",
-    importSchedule: "IMPORTA GIORNATA",
+    importSchedule: "IMPORT SCHEDULE",
+    importDayResult: "IMPORT DAY RESULT",
     disconnect: "Disconnetti",
     updated: "Aggiornato",
     penalties: "Rig.",
     importedNotify: "Partita importata!",
     importedScheduleNotify: "Giornata importata nel canvas!",
-    vs: "VS"
+    vs: "VS",
+    preferences: "Preferenze",
+    style: "Stile di Design",
+    standard: "Standard",
+    kwcc: "Kings World Cup Clubs",
+    formats: "Formati Canvas"
   },
   ar: {
     competition: "المنافسة",
@@ -101,13 +131,42 @@ const translations = {
     loading: "جاري تحميل المباريات...",
     noMatches: "لا توجد مباريات مجدولة في هذه الجولة",
     importLabel: "استيراد إلى Figma",
-    importSchedule: "استيراد الجدول",
+    importSchedule: "IMPORT SCHEDULE",
+    importDayResult: "IMPORT DAY RESULT",
     disconnect: "تسجيل الخروج",
     updated: "تم التحديث",
     penalties: "ر.ت",
     importedNotify: "تم استيراد المباراة!",
     importedScheduleNotify: "تم استيراد الجدول بالكامل!",
-    vs: "ضد"
+    vs: "ضد",
+    preferences: "التفضيلات",
+    style: "نمط التصميم",
+    standard: "قياسي",
+    kwcc: "Kings World Cup Clubs",
+    formats: "تنسيقات Canvas"
+  },
+  de: {
+    competition: "Wettbewerb",
+    season: "Saison",
+    language: "Sprache",
+    round: "Spieltag",
+    connected: "VERBUNDEN",
+    loading: "SPIELE WERDEN GELADEN...",
+    noMatches: "Keine Spiele für diesen Spieltag geplant",
+    importLabel: "In Canvas importieren",
+    importSchedule: "IMPORT SCHEDULE",
+    importDayResult: "IMPORT DAY RESULT",
+    disconnect: "Abmelden",
+    updated: "Aktualisiert",
+    penalties: "Elf.",
+    importedNotify: "Spiel importiert!",
+    importedScheduleNotify: "Spieltag in Canvas importiert!",
+    vs: "VS",
+    preferences: "Einstellungen",
+    style: "Designstil",
+    standard: "Standard",
+    kwcc: "Kings World Cup Clubs",
+    formats: "Canvas-Formate"
   }
 };
 
@@ -124,7 +183,8 @@ export function translateTurnName(name: string, lang: Language): string {
     pt: 'Rodada',
     fr: 'Journée',
     it: 'Giornata',
-    ar: 'الجولة'
+    ar: 'الجولة',
+    de: 'Spieltag'
   };
   
   const base = tRound[lang] || 'Jornada';
@@ -139,26 +199,56 @@ export function translateTurnName(name: string, lang: Language): string {
     if (lang === 'fr') return 'Quarts de finale';
     if (lang === 'it') return 'Quarti di finale';
     if (lang === 'ar') return 'ربع النهائي';
+    if (lang === 'de') return 'Viertelfinale';
   }
-  
+
   if (nameLower.includes('semifinal')) {
     if (lang === 'en') return 'Semifinals';
     if (lang === 'pt') return 'Semifinais';
     if (lang === 'fr') return 'Demi-finales';
     if (lang === 'it') return 'Semifinali';
     if (lang === 'ar') return 'نصف النهائي';
+    if (lang === 'de') return 'Halbfinale';
   }
-  
+
   if (nameLower.includes('final')) {
     if (lang === 'en') return 'Final';
     if (lang === 'pt') return 'Final';
     if (lang === 'fr') return 'Finale';
     if (lang === 'it') return 'Finale';
     if (lang === 'ar') return 'النهائي';
+    if (lang === 'de') return 'Finale';
   }
   
   return name;
 }
+
+const formatRoundDateRange = (matches: any[], resolveMatch: any, lang: string): string => {
+  if (!matches || matches.length === 0) return '';
+
+  const dates = matches
+    .map(m => new Date(resolveMatch(m).date))
+    .filter(d => !isNaN(d.getTime()))
+    .sort((a, b) => a.getTime() - b.getTime());
+
+  if (dates.length === 0) return '';
+
+  const d = dates[0];
+  const localeMap: Record<string, string> = {
+    es: 'es-ES',
+    en: 'en-US',
+    pt: 'pt-BR',
+    fr: 'fr-FR',
+    it: 'it-IT',
+    ar: 'ar-SA',
+    de: 'de-DE'
+  };
+  const locale = localeMap[lang] || 'es-ES';
+  const weekday = d.toLocaleDateString(locale, { weekday: 'long' }).toUpperCase();
+  const dateStr = d.toLocaleDateString(locale, { day: 'numeric', month: 'long' }).toUpperCase();
+
+  return `${weekday}, ${dateStr}`;
+};
 
 export const MatchSchedule: React.FC = () => {
   const {
@@ -169,6 +259,9 @@ export const MatchSchedule: React.FC = () => {
     clearCredentials,
     language,
     changeLanguage,
+    importStyle,
+    selectedFormats,
+    savePreferences,
     competitions,
     seasons,
     turns,
@@ -189,20 +282,32 @@ export const MatchSchedule: React.FC = () => {
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
 
+  // Active view: 'schedule' or 'preferences'
+  const [activeView, setActiveView] = useState<'schedule' | 'preferences'>('schedule');
+
   // Load competitions once authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      loadCompetitions();
+      loadCompetitions(language as Language);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, loadCompetitions]);
+
+  // Re-fetch season details when language changes
+  useEffect(() => {
+    if (selectedSeasonId) {
+      loadSeasonDetails(selectedSeasonId as number, language as Language);
+    }
+  }, [language, selectedSeasonId, loadSeasonDetails]);
 
   // Auto-select first competition and load seasons
   useEffect(() => {
     if (competitions.length > 0 && !selectedCompId) {
       const firstComp = competitions[0].id;
       setSelectedCompId(firstComp);
-      loadSeasons(firstComp);
+      loadSeasons(firstComp, language as Language);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [competitions, selectedCompId, loadSeasons]);
 
   // Auto-select season (prioritize isCurrent) and load turns
@@ -210,8 +315,9 @@ export const MatchSchedule: React.FC = () => {
     if (seasons.length > 0) {
       const currentSeason = seasons.find(s => s.isCurrent) || seasons[0];
       setSelectedSeasonId(currentSeason.id);
-      loadSeasonDetails(currentSeason.id);
+      loadSeasonDetails(currentSeason.id, language as Language);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seasons, loadSeasonDetails]);
 
   // Auto-select first turn (Jornada)
@@ -233,14 +339,14 @@ export const MatchSchedule: React.FC = () => {
     setSelectedCompId(val);
     setSelectedSeasonId('');
     setSelectedTurnId('');
-    loadSeasons(val);
+    loadSeasons(val, language as Language);
   };
 
   const handleSeasonChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = Number(e.target.value);
     setSelectedSeasonId(val);
     setSelectedTurnId('');
-    loadSeasonDetails(val);
+    loadSeasonDetails(val, language as Language);
   };
 
   // Find matches of the selected turn
@@ -329,51 +435,222 @@ export const MatchSchedule: React.FC = () => {
   const activeComp = competitions.find(c => c.id === selectedCompId);
   const competitionName = activeComp ? activeComp.name : 'KINGS LEAGUE';
 
-  const handleImportSchedule = () => {
-    if (typeof window !== 'undefined' && activeMatches.length > 0) {
-      const localeMap = {
-        es: 'es-ES',
-        en: 'en-US',
-        pt: 'pt-BR',
-        fr: 'fr-FR',
-        it: 'it-IT',
-        ar: 'ar-SA'
-      };
-      const locale = localeMap[language as Language] || 'es-ES';
-      const updateTime = new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-      
-      const payloadMatches = activeMatches.map(m => {
-        const resolved = resolveMatch(m);
-        const dateInfo = formatMatchDate(resolved.date, language as Language);
-        const homeScoreP = resolved.scores.homeScoreP;
-        const awayScoreP = resolved.scores.awayScoreP;
-        const penaltiesText = (homeScoreP !== null || awayScoreP !== null) 
-          ? `${t.penalties} (${homeScoreP || 0} - ${awayScoreP || 0})`
-          : undefined;
-        
-        return {
-          match: resolved,
-          weekday: dateInfo.weekday,
-          time: dateInfo.time,
-          date: dateInfo.date,
-          penaltiesText
-        };
-      });
+  const handleImportDayResult = () => {
+    if (typeof window === 'undefined' || activeMatches.length === 0) return;
 
+    const localeMap = {
+      es: 'es-ES',
+      en: 'en-US',
+      pt: 'pt-BR',
+      fr: 'fr-FR',
+      it: 'it-IT',
+      ar: 'ar-SA',
+      de: 'de-DE'
+    };
+    const locale = localeMap[language] || 'es-ES';
+    const updateTime = new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    const ti = translations[language] || translations.es;
+
+    const payloadMatches = activeMatches.map(m => {
+      const resolved = resolveMatch(m);
+      const dateInfo = formatMatchDate(resolved.date, language);
+      const homeScoreP = resolved.scores.homeScoreP;
+      const awayScoreP = resolved.scores.awayScoreP;
+      const penaltiesText = (homeScoreP !== null || awayScoreP !== null)
+        ? `${ti.penalties} (${homeScoreP || 0} - ${awayScoreP || 0})`
+        : undefined;
+
+      return {
+        match: resolved,
+        weekday: dateInfo.weekday,
+        time: dateInfo.time,
+        date: dateInfo.date,
+        penaltiesText
+      };
+    });
+
+    const dateRangeStr = formatRoundDateRange(activeMatches, resolveMatch, language);
+
+    if (importStyle === 'kwcc') {
+      window.parent.postMessage({
+        pluginMessage: {
+          type: 'import-kwcc-poster',
+          matches: payloadMatches,
+          competitionName,
+          turnName: translateTurnName(activeTurn?.name || 'Jornada', language),
+          updatedLabel: dateRangeStr || `${ti.updated}: ${updateTime}`,
+          isResult: true,
+          formats: selectedFormats,
+          language: language,
+          notificationText: ti.importedScheduleNotify
+        }
+      }, '*');
+    } else {
       window.parent.postMessage({
         pluginMessage: {
           type: 'import-schedule',
           matches: payloadMatches,
           competitionName,
-          turnName: translateTurnName(activeTurn?.name || 'Jornada', language as Language),
-          updatedLabel: `${t.updated}: ${updateTime}`,
-          notificationText: t.importedScheduleNotify
+          turnName: translateTurnName(activeTurn?.name || 'Jornada', language),
+          updatedLabel: `${ti.updated}: ${updateTime}`,
+          isResult: true,
+          notificationText: ti.importedScheduleNotify
+        }
+      }, '*');
+    }
+  };
+
+  const handleImportSchedule = () => {
+    if (typeof window === 'undefined' || activeMatches.length === 0) return;
+
+    const localeMap = {
+      es: 'es-ES',
+      en: 'en-US',
+      pt: 'pt-BR',
+      fr: 'fr-FR',
+      it: 'it-IT',
+      ar: 'ar-SA',
+      de: 'de-DE'
+    };
+    const locale = localeMap[language] || 'es-ES';
+    const updateTime = new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    const ti = translations[language] || translations.es;
+
+    const payloadMatches = activeMatches.map(m => {
+      const resolved = resolveMatch(m);
+      const dateInfo = formatMatchDate(resolved.date, language);
+
+      return {
+        match: resolved,
+        weekday: dateInfo.weekday,
+        time: dateInfo.time,
+        date: dateInfo.date,
+        penaltiesText: undefined
+      };
+    });
+
+    const dateRangeStr = formatRoundDateRange(activeMatches, resolveMatch, language);
+
+    if (importStyle === 'kwcc') {
+      window.parent.postMessage({
+        pluginMessage: {
+          type: 'import-kwcc-poster',
+          matches: payloadMatches,
+          competitionName,
+          turnName: translateTurnName(activeTurn?.name || 'Jornada', language),
+          updatedLabel: dateRangeStr || `${ti.updated}: ${updateTime}`,
+          isResult: false,
+          formats: selectedFormats,
+          language: language,
+          notificationText: ti.importedScheduleNotify
+        }
+      }, '*');
+    } else {
+      window.parent.postMessage({
+        pluginMessage: {
+          type: 'import-schedule',
+          matches: payloadMatches,
+          competitionName,
+          turnName: translateTurnName(activeTurn?.name || 'Jornada', language),
+          updatedLabel: `${ti.updated}: ${updateTime}`,
+          isResult: false,
+          notificationText: ti.importedScheduleNotify
         }
       }, '*');
     }
   };
 
   // MAIN SCHEDULE PANEL
+  if (activeView === 'preferences') {
+    return (
+      <div className="flex flex-col gap-5 px-5 py-5 text-white min-h-[500px]">
+        {/* Header with Back Arrow */}
+        <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+          <button 
+            onClick={() => setActiveView('schedule')}
+            className="p-1 hover:bg-white/5 rounded-lg border border-white/5 hover:border-white/10 text-white/80 hover:text-white transition-all cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-sm font-black uppercase tracking-wider text-amber-500">{t.preferences}</h1>
+            <p className="text-[10px] text-white/30 tracking-wide mt-0.5">Configura el diseño y localización</p>
+          </div>
+        </div>
+
+        {/* 1. Style preference */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-0.5">{t.style}</label>
+          <select
+            value={importStyle}
+            onChange={e => savePreferences(e.target.value as 'standard' | 'kwcc', selectedFormats)}
+            className="w-full bg-[#16161a]/80 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50 appearance-none font-semibold cursor-pointer"
+          >
+            <option value="standard" className="bg-[#121214] text-white">{t.standard}</option>
+            <option value="kwcc" className="bg-[#121214] text-white">{t.kwcc}</option>
+          </select>
+        </div>
+
+        {/* 3. Formats (only if Kings World Club Cup style is selected) */}
+        {importStyle === 'kwcc' && (
+          <div className="flex flex-col gap-2.5 p-3.5 bg-[#16161a]/40 border border-white/5 rounded-2xl">
+            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-0.5">{t.formats}</span>
+            <div className="flex flex-col gap-3 mt-1">
+              <label className="flex items-center gap-3 text-xs text-white/80 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={selectedFormats.stories}
+                  onChange={e => savePreferences(importStyle, { ...selectedFormats, stories: e.target.checked })}
+                  className="accent-amber-500 w-4 h-4 rounded border-white/10"
+                />
+                <span>Stories (1080 x 1920 px)</span>
+              </label>
+
+              <label className="flex items-center gap-3 text-xs text-white/80 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={selectedFormats.portraits}
+                  onChange={e => savePreferences(importStyle, { ...selectedFormats, portraits: e.target.checked })}
+                  className="accent-amber-500 w-4 h-4 rounded border-white/10"
+                />
+                <span>Portraits (1350 x 1920 px)</span>
+              </label>
+
+              <label className="flex items-center gap-3 text-xs text-white/80 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={selectedFormats.thumbs}
+                  onChange={e => savePreferences(importStyle, { ...selectedFormats, thumbs: e.target.checked })}
+                  className="accent-amber-500 w-4 h-4 rounded border-white/10"
+                />
+                <span>Thumbs (1920 x 1080 px)</span>
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1"></div>
+
+        {/* Logout Section */}
+        <div className="bg-[#16161a]/40 border border-white/5 rounded-2xl p-4 flex flex-col gap-2">
+          <div className="flex flex-col">
+            <span className="text-[9px] text-white/30 uppercase tracking-wider">{t.connected}</span>
+            <span className="text-xs font-bold text-white/70">{credentials?.username}</span>
+          </div>
+          <button 
+            onClick={clearCredentials}
+            className="w-full mt-2 py-2 border border-red-500/20 hover:border-red-500/40 bg-red-500/5 hover:bg-red-500/10 text-red-400 hover:text-red-300 font-extrabold text-xs rounded-xl transition-all cursor-pointer"
+          >
+            {t.disconnect.toUpperCase()}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 px-4 py-4 text-white min-h-[500px]">
       {/* Header Row */}
@@ -385,10 +662,22 @@ export const MatchSchedule: React.FC = () => {
             <span className="text-[9px] text-white/30 tracking-wider">{t.connected}: {credentials?.username}</span>
           </div>
         </div>
+        
+        {/* Preferences Toggle Button */}
+        <button
+          onClick={() => setActiveView('preferences')}
+          className="p-1.5 rounded-lg border bg-white/5 text-white/60 border-white/5 hover:border-white/10 hover:text-white transition-all duration-200 cursor-pointer"
+          title={t.preferences}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
       </div>
 
-      {/* Selectors Grid */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Selectors Grid (2 columns: Competition, Season) */}
+      <div className="grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
           <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest ml-0.5">{t.competition}</label>
           <select
@@ -419,58 +708,77 @@ export const MatchSchedule: React.FC = () => {
             ))}
           </select>
         </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest ml-0.5">{t.language}</label>
-          <select
-            value={language}
-            onChange={e => changeLanguage(e.target.value as Language)}
-            className="bg-[#16161a]/80 border border-white/10 rounded-xl px-2 py-2 text-[11px] text-white focus:outline-none focus:border-amber-500/50 appearance-none font-semibold cursor-pointer"
-          >
-            <option value="es" className="bg-[#121214] text-white">Español</option>
-            <option value="en" className="bg-[#121214] text-white">English</option>
-            <option value="pt" className="bg-[#121214] text-white">Português (BR)</option>
-            <option value="fr" className="bg-[#121214] text-white">Français</option>
-            <option value="it" className="bg-[#121214] text-white">Italiano</option>
-            <option value="ar" className="bg-[#121214] text-white">العربية</option>
-          </select>
-        </div>
       </div>
 
-      {/* Turn (Jornada) Selector & Import Schedule Row */}
+      {/* Turn (Jornada) Selector & Import Buttons */}
       {turns.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest ml-0.5">{t.round}</label>
-          <div className="flex gap-2 items-center">
-            <div className="relative flex-1">
-              <select
-                value={selectedTurnId}
-                onChange={e => setSelectedTurnId(Number(e.target.value))}
-                className="w-full bg-[#16161a]/80 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50 appearance-none font-semibold cursor-pointer"
-              >
-                {turns.map(turn => {
-                  const displayTurnName = translateTurnName(turn.name, language as Language);
-                  return (
-                    <option key={turn.id} value={turn.id} className="bg-[#121214] text-white">
-                      {displayTurnName}
-                    </option>
-                  );
-                })}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-white/40">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                </svg>
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            {/* Jornada selector */}
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest ml-0.5">{t.round}</label>
+              <div className="relative w-full">
+                <select
+                  value={selectedTurnId}
+                  onChange={e => setSelectedTurnId(Number(e.target.value))}
+                  className="w-full bg-[#16161a]/80 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50 appearance-none font-semibold cursor-pointer"
+                >
+                  {turns.map(turn => {
+                    const displayTurnName = translateTurnName(turn.name, language as Language);
+                    return (
+                      <option key={turn.id} value={turn.id} className="bg-[#121214] text-white">
+                        {displayTurnName}
+                      </option>
+                    );
+                  })}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-white/40">
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                  </svg>
+                </div>
               </div>
             </div>
-            
+
+            {/* Import language selector */}
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest ml-0.5">{t.language}</label>
+              <select
+                value={language}
+                onChange={e => changeLanguage(e.target.value as Language)}
+                className="w-full bg-[#16161a]/80 border border-white/10 rounded-xl px-2 py-2 text-[11px] text-white focus:outline-none focus:border-amber-500/50 appearance-none font-semibold cursor-pointer"
+              >
+                <option value="es" className="bg-[#121214] text-white">Español</option>
+                <option value="en" className="bg-[#121214] text-white">English</option>
+                <option value="pt" className="bg-[#121214] text-white">Português</option>
+                <option value="fr" className="bg-[#121214] text-white">Français</option>
+                <option value="it" className="bg-[#121214] text-white">Italiano</option>
+                <option value="de" className="bg-[#121214] text-white">Deutsch</option>
+                <option value="ar" className="bg-[#121214] text-white">العربية</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* Action buttons row */}
+          <div className="grid grid-cols-2 gap-2 mt-1">
+            <button
+              onClick={handleImportDayResult}
+              disabled={loading || activeMatches.length === 0}
+              className="w-full py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 disabled:from-amber-700 disabled:to-amber-700 text-black font-extrabold text-[11px] rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1 h-[36px] uppercase tracking-wide"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{t.importDayResult}</span>
+            </button>
+
             <button
               onClick={handleImportSchedule}
               disabled={loading || activeMatches.length === 0}
-              className="px-3 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 disabled:from-amber-700 disabled:to-amber-700 text-black font-extrabold text-[11px] rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center gap-1.5 shrink-0 h-[34px]"
+              className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white hover:text-white disabled:opacity-40 disabled:bg-[#16161a] disabled:text-white/35 font-extrabold text-[11px] rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 h-[36px] uppercase tracking-wide"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span>{t.importSchedule}</span>
             </button>
@@ -499,12 +807,14 @@ export const MatchSchedule: React.FC = () => {
             activeMatches.map(m => {
               const resolved = resolveMatch(m);
               return (
-                <MatchCard 
-                  key={m.id} 
-                  match={resolved} 
-                  turnName={translateTurnName(activeTurn?.name || 'Jornada', language as Language)}
-                  language={language as Language}
+                <MatchCard
+                  key={m.id}
+                  match={resolved}
+                  turnName={translateTurnName(activeTurn?.name || 'Jornada', language)}
+                  language={language}
                   competitionName={competitionName}
+                  importStyle={importStyle}
+                  selectedFormats={selectedFormats}
                 />
               );
             })
